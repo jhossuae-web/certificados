@@ -61,14 +61,14 @@ async function dibujar(pl, datos) {
   const cv = document.createElement('canvas'); cv.width = pl.ancho; cv.height = pl.alto;
   const ctx = cv.getContext('2d');
   ctx.drawImage(img, 0, 0, pl.ancho, pl.alto);
-  const zonas = {};
-  for (const el of pl.elementos) {
+  const zonas = {}, cajas = [];
+  for (const [idx, el] of pl.elementos.entries()) {
     if (el.si && !datos[el.si]) continue;
     if (el.tipo === 'linea') {
       ctx.strokeStyle = el.color || '#000'; ctx.lineWidth = el.grosor || 2;
       ctx.beginPath(); ctx.moveTo(el.x1, el.y1); ctx.lineTo(el.x2, el.y2); ctx.stroke();
     } else if (el.tipo === 'qr') {
-      zonas.qr = dibujarQR(ctx, el, datos.enlace);
+      zonas.qr = dibujarQR(ctx, el, datos.enlace); cajas[idx] = zonas.qr;
     } else {
       let t = String(el.texto).replace(/\{(\w+)\}/g, (m, k) => datos[k] == null ? '' : datos[k]);
       if (el.mayusculas) t = t.toUpperCase();
@@ -78,10 +78,12 @@ async function dibujar(pl, datos) {
       const al = el.alinear || 'center'; ctx.textAlign = al;
       const dx = al === 'center' ? esp / 2 : 0, alto = el.altoLinea || Math.round(tam * 1.25);
       lineas.forEach((l, i) => ctx.fillText(l, el.x + dx, el.y + i * alto));
+      const w = Math.max(40, ...lineas.map(l => ctx.measureText(l).width));
+      cajas[idx] = { x: al === 'center' ? el.x - w / 2 : al === 'right' ? el.x - w : el.x, y: el.y - tam * 0.85, w, h: (lineas.length - 1) * alto + tam * 1.05 };
       if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
     }
   }
-  return { canvas: cv, zonas };
+  return { canvas: cv, zonas, cajas };
 }
 
 function nombreArchivo(nombre, extension) {

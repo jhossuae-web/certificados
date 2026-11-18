@@ -6,6 +6,7 @@ Plataforma para que los asistentes de un evento descarguen su certificado en PDF
 
 - `admin.html`: la institución carga el Excel (registro y nombre completo) y obtiene el archivo del evento.
 - `certificado.html?e=CODIGO`: el alumno escribe su registro, ve su certificado y lo descarga.
+- `editor.html`: editor visual del diseño. Sube tu fondo, arrastra nombre, QR y textos, y descarga `plantilla.json` (y el fondo) para subirlos al repositorio.
 - `index.html`: verificación del certificado por código o por QR.
 
 ## Cómo se usa
@@ -17,7 +18,7 @@ Plataforma para que los asistentes de un evento descarguen su certificado en PDF
 ## Diseño del certificado
 
 El fondo es una sola imagen (`fondo.svg`) y se reutiliza para todos. Solo cambian nombre, código y QR.
-Para usar otro diseño, reemplazar `fondo.svg` por un PNG o JPG con proporción A4 horizontal (3508 x 2480) y ajustar posiciones y tamaños en `plantilla.json`.
+Para usar otro diseño, abrir `editor.html`, subir el fondo (PNG, JPG o SVG, de preferencia A4 horizontal) y acomodar los elementos. También se pueden ajustar a mano posiciones y tamaños en `plantilla.json`.
 
 ## Privacidad
 

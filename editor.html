@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Editor del certificado</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;padding:24px 16px}
+main{max-width:1240px;margin:0 auto}
+h1{font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 10px}
+.sub{margin:0 0 18px;color:#667085;font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.lienzo{position:sticky;top:12px}
+@media(max-width:900px){.lienzo{position:static}}
+.card{background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 4px 18px #17203308}
+.marco{position:relative;line-height:0;border:1px solid #d5dbe5;border-radius:6px;overflow:hidden;background:#fff}
+#cv{display:block;width:100%;height:auto}
+#cajas{position:absolute;inset:0;touch-action:none;cursor:move;outline:none}
+.caja{position:absolute;border:1px dashed #2457d655;pointer-events:none}
+.caja.sel{border:2px solid #2457d6;background:#2457d610}
+label{display:block;font-size:12px;color:#475467;margin:8px 0 3px}
+input[type=text],input[type=number],select{width:100%;border:1px solid #d5dbe5;border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;background:#fff}
+input[type=color]{width:100%;height:36px;border:1px solid #d5dbe5;border-radius:8px;padding:2px;background:#fff}
+input[type=file]{width:100%;font:inherit;font-size:13px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:#344054}
+.chk input{width:auto}
+button{border:0;border-radius:8px;padding:9px 12px;background:#2457d6;color:#fff;font:inherit;font-size:14px;font-weight:650;cursor:pointer}
+button.sec{background:#fff;color:#2457d6;border:1px solid #2457d6}
+button.mal{background:#fff;color:#b42318;border:1px solid #f0b4ae}
+.lista{display:flex;flex-direction:column;gap:4px;max-height:230px;overflow:auto}
+.item{flex-shrink:0;text-align:left;background:#fff;color:#172033;border:1px solid #e5e9f0;font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item.sel{border-color:#2457d6;background:#eef3ff;color:#1b3f9e;font-weight:650}
+.ayuda{font-size:12px;color:#667085;margin:6px 0 0}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.msg{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:13px;background:#f2f4f7;color:#475467}
+.msg.bien{background:#ecfdf3;color:#067647}
+.msg.mal{background:#fef3f2;color:#b42318}
+code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:12px}
+ol{margin:8px 0 0;padding-left:18px;font-size:13px;color:#344054}
+</style>
+</head>
+<body>
+<main>
+  <h1>Editor del certificado</h1>
+  <p class="sub">Sube tu fondo, arrastra cada elemento hasta dejarlo donde quieras y descarga la plantilla. Así todos los certificados salen con este diseño.</p>
+  <div class="grid">
+    <section class="lienzo">
+      <div class="marco"><canvas id="cv" width="10" height="10"></canvas><div id="cajas" tabindex="0" aria-label="Arrastra los elementos para moverlos"></div></div>
+      <p class="ayuda">Arrastra un elemento para moverlo. Con el elemento marcado, las flechas del teclado lo mueven de a poco (con Shift, más rápido). La vista usa datos de ejemplo.</p>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h2>Fondo</h2>
+        <input id="fondo" type="file" accept="image/png,image/jpeg,image/svg+xml">
+        <p class="ayuda" id="fondoInfo">Usando el fondo actual del repositorio.</p>
+      </div>
+
+      <div class="card">
+        <h2>Datos de ejemplo</h2>
+        <label for="dNombre">Nombre del alumno</label><input id="dNombre" type="text" value="María Fernanda Rodríguez Vásquez">
+        <label for="dEvento">Evento</label><input id="dEvento" type="text" value="Jornada de Marketing Digital 2026">
+        <div class="dos">
+          <div><label for="dFecha">Fecha</label><input id="dFecha" type="text" value="15 de noviembre de 2026"></div>
+          <div><label for="dHoras">Carga horaria</label><input id="dHoras" type="text" value="8 horas académicas"></div>
+        </div>
+        <label for="dEmisor">Institución</label><input id="dEmisor" type="text" value="Quimera Group">
+      </div>
+
+      <div class="card">
+        <h2>Elementos</h2>
+        <div class="lista" id="lista"></div>
+        <div class="acciones"><button class="sec" id="agregar" type="button">Agregar texto</button></div>
+      </div>
+
+      <div class="card" id="props"></div>
+
+      <div class="card">
+        <h2>Guardar</h2>
+        <div class="acciones">
+          <button id="dlPlantilla" type="button">Descargar plantilla</button>
+          <button id="dlFondo" class="sec oculto" type="button" style="display:none">Descargar fondo</button>
+        </div>
+        <ol>
+          <li>Sube los archivos descargados a la carpeta principal del repositorio y acepta reemplazar los que ya existen.</li>
+          <li>Espera uno o dos minutos y los certificados nuevos ya salen con este diseño.</li>
+        </ol>
+        <div id="estado"></div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script src="lib/qrcode.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="nucleo.js"></script>
+<script src="dibujo.js"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const FUENTES = [
+  { n: 'Cormorant negrita', f: 'Cormorant', p: 700, s: 'normal' },
+  { n: 'Cormorant cursiva', f: 'Cormorant', p: 600, s: 'italic' },
+  { n: 'Lato normal', f: 'Lato', p: 400, s: 'normal' },
+  { n: 'Lato negrita', f: 'Lato', p: 700, s: 'normal' }
+];
+let pl = null, sel = -1, fondoNuevo = null, ultima = null, corriendo = false, pendiente = false, drag = null;
+
+const base = () => (pl && pl.verificador) || new URL('./', location.href).href;
+function datos() {
+  const b = base();
+  return { nombre: $('dNombre').value, evento: $('dEvento').value, fecha: $('dFecha').value, horas: $('dHoras').value, emisor: $('dEmisor').value,
+    codigo: 'ABCD 2345X 6789Z', enlace: b + '?c=ABCD2345X6789Z', enlacecorto: b.replace(/^https?:\/\//, '').replace(/\/$/, '') };
+}
+function msg(tipo, texto) {
+  const c = $('estado'); c.textContent = '';
+  if (!texto) return;
+  const d = document.createElement('div'); d.className = 'msg ' + tipo; d.textContent = texto; c.appendChild(d);
+}
+
+function pedir() {
+  if (corriendo) { pendiente = true; return; }
+  corriendo = true;
+  (async () => {
+    try {
+      const r = await Cert.dibujar(pl, datos()); ultima = r;
+      r.canvas.id = 'cv'; $('cv').replaceWith(r.canvas);
+      pintarCajas();
+    } catch (e) { msg('mal', 'No se pudo dibujar la vista previa. Revisa que el fondo sea una imagen válida.'); }
+    finally { corriendo = false; if (pendiente) { pendiente = false; pedir(); } }
+  })();
+}
+
+function pintarCajas() {
+  const c = $('cajas'); c.textContent = '';
+  if (!ultima) return;
+  ultima.cajas.forEach((b, i) => {
+    if (!b) return;
+    const d = document.createElement('div'); d.className = 'caja' + (i === sel ? ' sel' : '');
+    d.style.cssText = 'left:' + (100 * b.x / pl.ancho) + '%;top:' + (100 * b.y / pl.alto) + '%;width:' + (100 * b.w / pl.ancho) + '%;height:' + (100 * b.h / pl.alto) + '%';
+    c.appendChild(d);
+  });
+}
+
+function etiqueta(el) { return el.tipo === 'qr' ? 'Código QR' : el.tipo === 'linea' ? 'Línea' : el.texto; }
+function pintarLista() {
+  const l = $('lista'); l.textContent = '';
+  pl.elementos.forEach((el, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'item' + (i === sel ? ' sel' : ''); b.textContent = etiqueta(el);
+    b.onclick = () => { sel = i; refrescar(); }; l.appendChild(b);
+  });
+}
+function refrescar() { pintarLista(); pintarProps(); pintarCajas(); }
+
+/* Arrastre sobre el lienzo */
+function aPlantilla(e) {
+  const r = $('cv').getBoundingClientRect(), k = pl.ancho / r.width;
+  return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k, k };
+}
+$('cajas').addEventListener('pointerdown', e => {
+  if (!ultima) return;
+  const p = aPlantilla(e); let mejor = -1, area = Infinity;
+  ultima.cajas.forEach((b, i) => {
+    if (!b || p.x < b.x || p.x > b.x + b.w || p.y < b.y || p.y > b.y + b.h) return;
+    const a = b.w * b.h; if (a < area) { area = a; mejor = i; }
+  });
+  if (mejor < 0) return;
+  e.preventDefault(); $('cajas').focus(); $('cajas').setPointerCapture(e.pointerId);
+  sel = mejor; const el = pl.elementos[mejor];
+  drag = { x0: e.clientX, y0: e.clientY, ex: el.x, ey: el.y, k: p.k }; refrescar();
+});
+$('cajas').addEventListener('pointermove', e => {
+  if (!drag || sel < 0) return;
+  const el = pl.elementos[sel];
+  el.x = Math.round(drag.ex + (e.clientX - drag.x0) * drag.k); el.y = Math.round(drag.ey + (e.clientY - drag.y0) * drag.k);
+  sincronizarXY(); pedir();
+});
+['pointerup', 'pointercancel'].forEach(t => $('cajas').addEventListener(t, () => { drag = null; }));
+$('cajas').addEventListener('keydown', e => {
+  const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+  if (!d || sel < 0) return;
+  e.preventDefault(); const el = pl.elementos[sel], paso = e.shiftKey ? 20 : 4;
+  el.x += d[0] * paso; el.y += d[1] * paso; sincronizarXY(); pedir();
+});
+function sincronizarXY() {
+  const el = pl.elementos[sel]; if (!el) return;
+  if ($('pX')) $('pX').value = el.x; if ($('pY')) $('pY').value = el.y;
+}
+
+/* Propiedades del elemento marcado */
+function campo(padre, etiquetaTxt, tipo, valor, alCambiar, extra) {
+  const l = document.createElement('label'); l.textContent = etiquetaTxt; padre.appendChild(l);
+  const i = document.createElement('input'); i.type = tipo; i.value = valor == null ? '' : valor;
+  Object.assign(i, extra || {}); i.addEventListener('input', () => alCambiar(i.value)); l.htmlFor = i.id = i.id || ('c' + Math.random().toString(36).slice(2, 7));
+  padre.appendChild(i); return i;
+}
+function pintarProps() {
+  const c = $('props'); c.textContent = '';
+  const el = pl.elementos[sel];
+  const h = document.createElement('h2'); h.textContent = 'Propiedades'; c.appendChild(h);
+  if (!el) { const p = document.createElement('p'); p.className = 'ayuda'; p.textContent = 'Marca un elemento en la lista o sobre el certificado.'; c.appendChild(p); return; }
+  const num = (v, min) => Math.max(min == null ? -99999 : min, Math.round(+v || 0));
+  if (el.tipo === 'linea') {
+    const p = document.createElement('p'); p.className = 'ayuda'; p.textContent = 'Las líneas se editan en plantilla.json. Aquí solo se pueden eliminar.'; c.appendChild(p);
+  } else {
+    const dos = document.createElement('div'); dos.className = 'dos'; c.appendChild(dos);
+    const a = document.createElement('div'), b = document.createElement('div'); dos.append(a, b);
+    campo(a, 'Posición X', 'number', el.x, v => { el.x = num(v); pedir(); }, { id: 'pX' });
+    campo(b, 'Posición Y', 'number', el.y, v => { el.y = num(v); pedir(); }, { id: 'pY' });
+    if (el.tipo === 'qr') {
+      campo(c, 'Tamaño del QR', 'number', el.tam, v => { el.tam = num(v, 120); pedir(); });
+    } else {
+      campo(c, 'Texto', 'text', el.texto, v => { el.texto = v; pedir(); pintarLista(); });
+      const ay = document.createElement('p'); ay.className = 'ayuda';
+      ay.textContent = 'Variables: {nombre} {evento} {fecha} {horas} {emisor} {codigo} {enlacecorto}'; c.appendChild(ay);
+      const lf = document.createElement('label'); lf.textContent = 'Fuente'; c.appendChild(lf);
+      const sf = document.createElement('select');
+      FUENTES.forEach((f, i) => { const o = document.createElement('option'); o.value = i; o.textContent = f.n; sf.appendChild(o); });
+      sf.value = Math.max(0, FUENTES.findIndex(f => f.f === el.familia && f.p === (el.peso || 400) && f.s === (el.estilo || 'normal')));
+      sf.onchange = () => { const f = FUENTES[+sf.value]; el.familia = f.f; el.peso = f.p; el.estilo = f.s; pedir(); }; c.appendChild(sf);
+      const d2 = document.createElement('div'); d2.className = 'dos'; c.appendChild(d2);
+      const t1 = document.createElement('div'), t2 = document.createElement('div'); d2.append(t1, t2);
+      campo(t1, 'Tamaño', 'number', el.tam, v => { el.tam = num(v, 10); if (el.tamMin > el.tam) el.tamMin = el.tam; pedir(); });
+      campo(t2, 'Color', 'color', el.color || '#000000', v => { el.color = v; pedir(); });
+      const la = document.createElement('label'); la.textContent = 'Alineación'; c.appendChild(la);
+      const sa = document.createElement('select');
+      [['center', 'Centrado'], ['left', 'Izquierda'], ['right', 'Derecha']].forEach(([v, n]) => { const o = document.createElement('option'); o.value = v; o.textContent = n; sa.appendChild(o); });
+      sa.value = el.alinear || 'center'; sa.onchange = () => { el.alinear = sa.value; pedir(); }; c.appendChild(sa);
+      const d3 = document.createElement('div'); d3.className = 'dos'; c.appendChild(d3);
+      const u1 = document.createElement('div'), u2 = document.createElement('div'); d3.append(u1, u2);
+      campo(u1, 'Ancho máximo', 'number', el.ancho || '', v => { if (+v > 0) el.ancho = num(v, 50); else delete el.ancho; pedir(); });
+      campo(u2, 'Espaciado entre letras', 'number', el.espaciado || 0, v => { el.espaciado = num(v, 0); pedir(); });
+      const d4 = document.createElement('div'); d4.className = 'dos'; c.appendChild(d4);
+      const v1 = document.createElement('div'), v2 = document.createElement('div'); d4.append(v1, v2);
+      campo(v1, 'Líneas máximas', 'number', el.maxLineas || 1, v => { el.maxLineas = num(v, 1); pedir(); });
+      campo(v2, 'Tamaño mínimo', 'number', el.tamMin || '', v => { if (+v > 0) el.tamMin = Math.min(num(v, 8), el.tam); else delete el.tamMin; pedir(); });
+      const ch = document.createElement('label'); ch.className = 'chk';
+      const ci = document.createElement('input'); ci.type = 'checkbox'; ci.checked = !!el.mayusculas; ci.onchange = () => { el.mayusculas = ci.checked; pedir(); };
+      ch.append(ci, document.createTextNode('Todo en mayúsculas')); c.appendChild(ch);
+    }
+  }
+  const ac = document.createElement('div'); ac.className = 'acciones'; c.appendChild(ac);
+  if (el.tipo !== 'linea') {
+    const du = document.createElement('button'); du.type = 'button'; du.className = 'sec'; du.textContent = 'Duplicar';
+    du.onclick = () => { const n = JSON.parse(JSON.stringify(el)); n.x += 40; n.y += 40; pl.elementos.push(n); sel = pl.elementos.length - 1; refrescar(); pedir(); };
+    ac.appendChild(du);
+  }
+  const el2 = document.createElement('button'); el2.type = 'button'; el2.className = 'mal'; el2.textContent = 'Eliminar';
+  el2.onclick = () => { pl.elementos.splice(sel, 1); sel = -1; refrescar(); pedir(); }; ac.appendChild(el2);
+}
+
+$('agregar').onclick = () => {
+  pl.elementos.push({ texto: 'Texto nuevo', x: Math.round(pl.ancho / 2), y: Math.round(pl.alto / 2), familia: 'Lato', peso: 400, tam: 64, color: '#1f2f4d' });
+  sel = pl.elementos.length - 1; refrescar(); pedir();
+};
+['dNombre', 'dEvento', 'dFecha', 'dHoras', 'dEmisor'].forEach(i => $(i).addEventListener('input', pedir));
+
+/* Fondo propio */
+$('fondo').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f), img = new Image();
+  img.onload = () => {
+    const ext = (f.name.split('.').pop() || 'png').toLowerCase().replace('jpeg', 'jpg');
+    fondoNuevo = { file: f, nombre: 'fondo.' + ext };
+    pl.fondo = url; pl.alto = Math.round(pl.ancho * img.naturalHeight / img.naturalWidth);
+    const prop = (img.naturalWidth / img.naturalHeight).toFixed(2);
+    $('fondoInfo').textContent = 'Fondo cargado: ' + img.naturalWidth + ' x ' + img.naturalHeight + ' px (proporción ' + prop + '). El A4 horizontal es 1.41.';
+    $('dlFondo').style.display = ''; msg('', ''); pedir();
+  };
+  img.onerror = () => { $('fondoInfo').textContent = 'No pude leer esa imagen. Usa PNG, JPG o SVG.'; };
+  img.src = url;
+});
+
+/* Guardar */
+function bajar(blob, nombre) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$('dlPlantilla').onclick = () => {
+  const salida = JSON.parse(JSON.stringify(pl));
+  if (fondoNuevo) salida.fondo = fondoNuevo.nombre;
+  bajar(new Blob([JSON.stringify(salida, null, 2)], { type: 'application/json' }), 'plantilla.json');
+  msg('bien', fondoNuevo ? 'Descargué plantilla.json. Descarga también el fondo y sube los dos archivos.' : 'Descargué plantilla.json. Súbelo al repositorio para aplicar los cambios.');
+};
+$('dlFondo').onclick = () => { if (fondoNuevo) bajar(fondoNuevo.file, fondoNuevo.nombre); };
+
+(async () => {
+  try {
+    pl = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
+    if (pl.elementos.length) sel = pl.elementos.findIndex(e => /\{nombre\}/.test(e.texto || ''));
+    refrescar(); pedir();
+  } catch (e) { msg('mal', 'No pude cargar plantilla.json. Abre esta página desde el sitio publicado.'); }
+})();
+})();
+</script>
+</body>
+</html>
