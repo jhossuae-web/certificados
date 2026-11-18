@@ -9,6 +9,9 @@
 *{box-sizing:border-box}
 body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;padding:24px 16px}
 main{max-width:1240px;margin:0 auto}
+nav{display:flex;gap:14px;margin:0 0 16px;font-size:14px}
+nav a{color:#2457d6;text-decoration:none}
+nav a.act{color:#172033;font-weight:700;pointer-events:none}
 h1{font-size:22px;margin:0 0 6px}
 h2{font-size:15px;margin:0 0 10px}
 .sub{margin:0 0 18px;color:#667085;font-size:14px}
@@ -46,6 +49,7 @@ ol{margin:8px 0 0;padding-left:18px;font-size:13px;color:#344054}
 </head>
 <body>
 <main>
+  <nav><a href="admin.html">Cargar evento</a><a class="act" href="editor.html">Diseño</a><a href="panel.html">Estadísticas</a></nav>
   <h1>Editor del certificado</h1>
   <p class="sub">Sube tu fondo, arrastra cada elemento hasta dejarlo donde quieras y descarga la plantilla. Así todos los certificados salen con este diseño.</p>
   <div class="grid">
@@ -63,6 +67,7 @@ ol{margin:8px 0 0;padding-left:18px;font-size:13px;color:#344054}
 
       <div class="card">
         <h2>Datos de ejemplo</h2>
+        <p class="ayuda" id="muestraInfo" style="display:none;margin:0 0 6px">Estás viendo al primer alumno del evento que acabas de cargar. El código, el enlace y el QR son reales y se arman solos para cada alumno. Tú solo decides dónde va cada cosa.</p>
         <label for="dNombre">Nombre del alumno</label><input id="dNombre" type="text" value="María Fernanda Rodríguez Vásquez">
         <label for="dEvento">Evento</label><input id="dEvento" type="text" value="Jornada de Marketing Digital 2026">
         <div class="dos">
@@ -110,13 +115,24 @@ const FUENTES = [
   { n: 'Lato normal', f: 'Lato', p: 400, s: 'normal' },
   { n: 'Lato negrita', f: 'Lato', p: 700, s: 'normal' }
 ];
-let pl = null, sel = -1, fondoNuevo = null, ultima = null, corriendo = false, pendiente = false, drag = null;
+let pl = null, sel = -1, fondoNuevo = null, ultima = null, corriendo = false, pendiente = false, drag = null, muestra = null;
 
 const base = () => (pl && pl.verificador) || new URL('./', location.href).href;
 function datos() {
   const b = base();
-  return { nombre: $('dNombre').value, evento: $('dEvento').value, fecha: $('dFecha').value, horas: $('dHoras').value, emisor: $('dEmisor').value,
+  const d = { nombre: $('dNombre').value, evento: $('dEvento').value, fecha: $('dFecha').value, horas: $('dHoras').value, emisor: $('dEmisor').value,
     codigo: 'ABCD 2345X 6789Z', enlace: b + '?c=ABCD2345X6789Z', enlacecorto: b.replace(/^https?:\/\//, '').replace(/\/$/, '') };
+  if (muestra) { d.codigo = muestra.codigo; d.enlace = muestra.enlace; d.enlacecorto = muestra.enlacecorto; }
+  return d;
+}
+if (new URLSearchParams(location.search).get('muestra')) {
+  try {
+    muestra = JSON.parse(sessionStorage.getItem('muestra') || 'null');
+    if (muestra) {
+      $('dNombre').value = muestra.nombre || ''; $('dEvento').value = muestra.evento || ''; $('dFecha').value = muestra.fecha || '';
+      $('dHoras').value = muestra.horas || ''; $('dEmisor').value = muestra.emisor || ''; $('muestraInfo').style.display = '';
+    }
+  } catch (e) { muestra = null; }
 }
 function msg(tipo, texto) {
   const c = $('estado'); c.textContent = '';

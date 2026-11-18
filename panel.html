@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Estadísticas</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center;padding:24px 16px}
+main{width:100%;max-width:860px}
+nav{display:flex;gap:14px;margin:0 0 16px;font-size:14px}
+nav a{color:#2457d6;text-decoration:none}
+nav a.act{color:#172033;font-weight:700;pointer-events:none}
+h1{font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 10px}
+.sub{margin:0 0 18px;color:#667085;font-size:14px}
+.card{background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 18px #17203308}
+label{display:block;font-size:12px;color:#475467;margin:0 0 3px}
+input[type=text],input[type=password],select{width:100%;border:1px solid #d5dbe5;border-radius:8px;padding:9px 10px;font:inherit;font-size:14px;background:#fff}
+.fila{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fila>div{flex:1;min-width:180px}
+button{border:0;border-radius:8px;padding:10px 14px;background:#2457d6;color:#fff;font:inherit;font-size:14px;font-weight:650;cursor:pointer}
+button.sec{background:#fff;color:#2457d6;border:1px solid #2457d6}
+button:disabled{opacity:.55;cursor:default}
+.msg{margin-top:10px;padding:9px 11px;border-radius:8px;font-size:14px;background:#f2f4f7;color:#475467}
+.msg.mal{background:#fef3f2;color:#b42318}
+.msg.bien{background:#ecfdf3;color:#067647}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid #e5e9f0;border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:28px;line-height:1.1}
+.kpi span{font-size:13px;color:#475467}
+.kpi small{display:block;font-size:12px;color:#667085;margin-top:2px}
+.lista{margin:0;padding:0;list-style:none}
+.lista li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #eef1f5;font-size:14px}
+.lista li:last-child{border-bottom:0}
+.lista .n{color:#667085;white-space:nowrap}
+.lista .reg{color:#667085;font-size:12px}
+.dia{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;padding:4px 0;font-size:13px}
+.dia i{display:block;height:8px;background:#2457d6;border-radius:4px;min-width:2px}
+.dia span.t{color:#667085}
+ol{margin:8px 0 0;padding-left:20px;font-size:14px;color:#344054}
+ol li{margin-bottom:4px}
+code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
+.oculto{display:none}
+.vacio{margin:0;font-size:14px;color:#667085}
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="admin.html">Cargar evento</a><a href="editor.html">Diseño</a><a class="act" href="panel.html">Estadísticas</a></nav>
+  <h1>Estadísticas</h1>
+  <p class="sub">Cuántas personas entran a la página, qué alumnos buscan más y cuántos certificados se descargan.</p>
+
+  <div class="card oculto" id="conectar">
+    <h2>Conectar las estadísticas</h2>
+    <p class="vacio" style="margin-bottom:8px">Todavía no hay una hoja conectada. Se hace una sola vez:</p>
+    <ol>
+      <li>Crea una hoja nueva en Google Sheets, menú Extensiones, Apps Script.</li>
+      <li>Pega el contenido de <a href="estadisticas.gs" target="_blank" rel="noopener">estadisticas.gs</a>, cambia la CLAVE por una tuya y guarda.</li>
+      <li>Implementar, Nueva implementación, Aplicación web. Ejecutar como: Yo. Acceso: Cualquier persona.</li>
+      <li>Copia la URL que termina en <code>/exec</code> y pégala aquí:</li>
+    </ol>
+    <div class="fila" style="margin-top:10px">
+      <div><label for="urlNueva">URL de la aplicación web</label><input id="urlNueva" type="text" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></div>
+      <div style="flex:0 0 auto"><button id="dlConfig" type="button">Descargar config.json</button></div>
+    </div>
+    <p class="vacio" style="margin-top:10px">Sube <code>config.json</code> a la carpeta principal del repositorio, reemplazando el que está. Desde ese momento se empiezan a contar las visitas.</p>
+  </div>
+
+  <div class="card oculto" id="acceso">
+    <div class="fila">
+      <div><label for="clave">Clave de estadísticas</label><input id="clave" type="password" autocomplete="off" placeholder="La que pusiste en el script"></div>
+      <div style="flex:0 0 auto"><button id="cargar" type="button">Ver estadísticas</button></div>
+    </div>
+    <div id="estado"></div>
+  </div>
+
+  <div id="datos" class="oculto">
+    <div class="card">
+      <div class="fila">
+        <div><label for="fEvento">Evento</label><select id="fEvento"></select></div>
+        <div><label for="fPeriodo">Período</label>
+          <select id="fPeriodo"><option value="0">Todo el tiempo</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option></select></div>
+        <div style="flex:0 0 auto"><button class="sec" id="actualizar" type="button">Actualizar</button></div>
+      </div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card"><h2>Alumnos más buscados</h2><div id="top"></div></div>
+    <div class="card"><h2>Registros que no se encontraron</h2><div id="nof"></div></div>
+    <div class="card"><h2>Actividad por día</h2><div id="dias"></div></div>
+  </div>
+</main>
+
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+let url = '', filas = [], info = {};
+
+function msg(tipo, texto) {
+  const c = $('estado'); c.textContent = '';
+  if (texto) c.appendChild(h('div', 'msg ' + (tipo || ''), texto));
+}
+
+async function datosEvento(lote) {
+  if (!lote) return null;
+  if (info[lote] !== undefined) return info[lote];
+  try {
+    const j = await (await fetch(lote + '.json', { cache: 'no-store' })).json();
+    info[lote] = { nombre: j.ev ? j.ev.n : '', total: j.r ? Object.keys(j.r).length : 0 };
+  } catch (e) { info[lote] = null; }
+  return info[lote];
+}
+
+async function iniciar() {
+  try { url = ((await (await fetch('config.json', { cache: 'no-store' })).json()).estadisticas || '').trim(); } catch (e) { url = ''; }
+  if (!url) { $('conectar').classList.remove('oculto'); return; }
+  $('acceso').classList.remove('oculto');
+  let guardada = ''; try { guardada = localStorage.getItem('cert.clave') || ''; } catch (e) {}
+  if (guardada) { $('clave').value = guardada; cargar(); }
+}
+
+$('urlNueva').addEventListener('input', () => { $('dlConfig').disabled = !/^https:\/\/script\.google\.com\/.+\/exec$/.test($('urlNueva').value.trim()); });
+$('dlConfig').disabled = true;
+$('dlConfig').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ estadisticas: $('urlNueva').value.trim() }, null, 2)], { type: 'application/json' }));
+  a.download = 'config.json'; document.body.appendChild(a); a.click(); a.remove();
+};
+
+async function cargar() {
+  const clave = $('clave').value; if (!clave) { msg('mal', 'Escribe la clave.'); return; }
+  const b = $('cargar'); b.disabled = true; b.textContent = 'Cargando...'; msg('', '');
+  try {
+    const r = await fetch(url + (url.includes('?') ? '&' : '?') + 'clave=' + encodeURIComponent(clave), { cache: 'no-store' });
+    const j = await r.json();
+    if (!j.ok) { msg('mal', j.error || 'No se pudo leer la hoja.'); return; }
+    try { localStorage.setItem('cert.clave', clave); } catch (e) {}
+    filas = j.filas || [];
+    const lotes = [...new Set(filas.map(f => f.lote))];
+    await Promise.all(lotes.map(datosEvento));
+    const sel = $('fEvento'), previo = sel.value; sel.textContent = '';
+    const o0 = h('option', '', 'Todos los eventos'); o0.value = '*'; sel.appendChild(o0);
+    lotes.sort().forEach(l => {
+      const o = h('option', '', l ? (l + (info[l] && info[l].nombre ? '  ·  ' + info[l].nombre : '')) : 'Entraron sin enlace de evento'); o.value = l || '#'; sel.appendChild(o);
+    });
+    if ([...sel.options].some(o => o.value === previo)) sel.value = previo;
+    $('datos').classList.remove('oculto'); pintar();
+  } catch (e) { msg('mal', 'No pude conectar con la hoja. Revisa la URL en config.json y que el acceso sea Cualquier persona.'); }
+  finally { b.disabled = false; b.textContent = 'Ver estadísticas'; }
+}
+$('cargar').onclick = cargar;
+$('clave').addEventListener('keydown', e => { if (e.key === 'Enter') cargar(); });
+$('actualizar').onclick = cargar;
+$('fEvento').onchange = $('fPeriodo').onchange = pintar;
+
+const dia = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+function pintar() {
+  const ev = $('fEvento').value, dias = +$('fPeriodo').value, desde = dias ? Date.now() - dias * 864e5 : 0;
+  const f = filas.filter(x => (ev === '*' || x.lote === (ev === '#' ? '' : ev)) && (!desde || new Date(x.fecha).getTime() >= desde));
+  const vistas = f.filter(x => x.tipo === 'vista'), bus = f.filter(x => x.tipo === 'busqueda'), des = f.filter(x => x.tipo === 'descarga');
+  const ok = bus.filter(x => x.ok === 'si').length, pdf = des.filter(x => x.formato === 'pdf').length;
+  const unicos = new Set(vistas.map(x => x.vid)).size, quienes = new Set(des.map(x => x.reg)).size;
+  const lotesVistos = ev === '*' ? [...new Set(filas.map(x => x.lote).filter(Boolean))] : (ev !== '#' ? [ev] : []);
+  const total = lotesVistos.reduce((s, l) => s + (info[l] ? info[l].total : 0), 0);
+
+  const k = $('kpis'); k.textContent = '';
+  const tile = (n, t, s) => { const d = h('div', 'kpi'); d.append(h('b', '', n), h('span', '', t)); if (s) d.appendChild(h('small', '', s)); k.appendChild(d); };
+  tile(vistas.length, 'Vistas de la página', unicos + ' visitantes distintos');
+  tile(bus.length, 'Búsquedas', ok + ' encontradas, ' + (bus.length - ok) + ' sin resultado');
+  tile(des.length, 'Descargas', pdf + ' en PDF, ' + (des.length - pdf) + ' en PNG');
+  tile(quienes, 'Alumnos que descargaron', total ? 'de ' + total + ' en la lista (' + Math.round(100 * quienes / total) + '%)' : '');
+
+  // alumnos más buscados
+  const por = {};
+  bus.filter(x => x.ok === 'si').forEach(x => { const a = por[x.reg] || (por[x.reg] = { reg: x.reg, nombre: x.nombre, b: 0, d: 0 }); a.b++; });
+  des.forEach(x => { const a = por[x.reg]; if (a) a.d++; });
+  const top = Object.values(por).sort((a, b) => b.b - a.b || b.d - a.d).slice(0, 10);
+  const t = $('top'); t.textContent = '';
+  if (!top.length) t.appendChild(h('p', 'vacio', 'Todavía no hay búsquedas.'));
+  else { const ul = h('ul', 'lista'); top.forEach(a => {
+    const li = h('li'); const iz = h('span', '', a.nombre); iz.appendChild(h('span', 'reg', '  ' + a.reg));
+    li.append(iz, h('span', 'n', a.b + (a.b === 1 ? ' búsqueda' : ' búsquedas') + ', ' + a.d + (a.d === 1 ? ' descarga' : ' descargas'))); ul.appendChild(li); }); t.appendChild(ul); }
+
+  // no encontrados
+  const no = {}; bus.filter(x => x.ok === 'no').forEach(x => { no[x.reg] = (no[x.reg] || 0) + 1; });
+  const nl = Object.entries(no).sort((a, b) => b[1] - a[1]).slice(0, 8), n = $('nof'); n.textContent = '';
+  if (!nl.length) n.appendChild(h('p', 'vacio', 'Ninguna búsqueda falló.'));
+  else { const ul = h('ul', 'lista'); nl.forEach(([r, c]) => { const li = h('li'); li.append(h('span', '', r || '(vacío)'), h('span', 'n', c + (c === 1 ? ' vez' : ' veces'))); ul.appendChild(li); }); n.appendChild(ul); }
+
+  // por día (últimos 14 días con actividad)
+  const mapa = {};
+  f.forEach(x => { const d = dia(new Date(x.fecha)); const m = mapa[d] || (mapa[d] = { v: 0, b: 0, d: 0 }); if (x.tipo === 'vista') m.v++; else if (x.tipo === 'busqueda') m.b++; else if (x.tipo === 'descarga') m.d++; });
+  const claves = Object.keys(mapa).sort().slice(-14).reverse(), mx = Math.max(1, ...claves.map(c => mapa[c].v)), dd = $('dias'); dd.textContent = '';
+  if (!claves.length) dd.appendChild(h('p', 'vacio', 'Sin actividad en este período.'));
+  claves.forEach(c => {
+    const m = mapa[c], fila = h('div', 'dia'), b = h('i'); b.style.width = (100 * m.v / mx) + '%';
+    const cont = h('div'); cont.appendChild(b);
+    fila.append(h('span', 't', c.slice(8) + '/' + c.slice(5, 7)), cont, h('span', 't', m.v + ' vistas, ' + m.b + ' búsquedas, ' + m.d + ' descargas'));
+    dd.appendChild(fila);
+  });
+}
+iniciar();
+})();
+</script>
+</body>
+</html>

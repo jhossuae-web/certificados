@@ -52,6 +52,7 @@ canvas{display:block;width:100%;height:auto;border:1px solid #e5e9f0;border-radi
 <script src="lib/jspdf.umd.min.js"></script>
 <script src="nucleo.js"></script>
 <script src="dibujo.js"></script>
+<script src="seguimiento.js"></script>
 <script>
 (function () {
 'use strict';
@@ -84,6 +85,7 @@ async function cargarEvento(codigo) {
   return true;
 }
 
+Cert.rastro.iniciar(lote); Cert.rastro.enviar('vista');
 if (!lote) { $('lblE').classList.remove('oculto'); $('e').classList.remove('oculto'); }
 else cargarEvento(lote);
 
@@ -93,7 +95,7 @@ $('f').addEventListener('submit', async ev => {
   if (!lote) {
     const c = $('e').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (c.length !== 4) { aviso('mal', 'El código del evento tiene 4 caracteres.'); return; }
-    lote = c;
+    lote = c; Cert.rastro.fijarLote(lote);
   }
   if (!evento || evento.lote !== lote) { if (!await cargarEvento(lote)) { if (!params.get('e')) lote = ''; return; } }
   const reg = $('reg').value;
@@ -101,6 +103,8 @@ $('f').addEventListener('submit', async ev => {
   const btn = $('ir'); btn.disabled = true; btn.textContent = 'Buscando...';
   try {
     const al = await Cert.buscar(evento, reg);
+    const regNorm = Cert.normReg(reg);
+    Cert.rastro.enviar('busqueda', { reg: regNorm, nombre: al ? al.nombre : '', ok: !!al });
     if (!al) { aviso('mal', 'No encontramos ese registro en este evento. Revisa que esté escrito como figura en la lista de asistentes.'); return; }
     if (!plantilla) plantilla = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
     const enlace = base() + '?c=' + al.codigo;
@@ -110,8 +114,8 @@ $('f').addEventListener('submit', async ev => {
     const card = document.createElement('div'); card.className = 'card';
     res.canvas.setAttribute('aria-label', 'Certificado de ' + al.nombre); card.appendChild(res.canvas);
     const ac = document.createElement('div'); ac.className = 'acciones';
-    const bp = document.createElement('button'); bp.textContent = 'Descargar PDF'; bp.onclick = () => Cert.descargarPDF(plantilla, res, al.nombre, enlace);
-    const bi = document.createElement('button'); bi.className = 'sec'; bi.textContent = 'Descargar PNG'; bi.onclick = () => Cert.descargarPNG(res, al.nombre);
+    const bp = document.createElement('button'); bp.textContent = 'Descargar PDF'; bp.onclick = () => { Cert.descargarPDF(plantilla, res, al.nombre, enlace); Cert.rastro.enviar('descarga', { reg: regNorm, nombre: al.nombre, formato: 'pdf' }); };
+    const bi = document.createElement('button'); bi.className = 'sec'; bi.textContent = 'Descargar PNG'; bi.onclick = () => { Cert.descargarPNG(res, al.nombre); Cert.rastro.enviar('descarga', { reg: regNorm, nombre: al.nombre, formato: 'png' }); };
     ac.append(bp, bi); card.appendChild(ac);
     const n = document.createElement('p'); n.className = 'nota';
     n.textContent = 'Tu certificado se puede verificar con el código ' + al.codigoFormato + ' o escaneando el QR.'; card.appendChild(n);

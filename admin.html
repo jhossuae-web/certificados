@@ -9,6 +9,14 @@
 *{box-sizing:border-box}
 body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center;padding:28px 16px}
 main{width:100%;max-width:760px}
+nav{display:flex;gap:14px;margin:0 0 16px;font-size:14px}
+nav a{color:#2457d6;text-decoration:none}
+nav a.act{color:#172033;font-weight:700;pointer-events:none}
+.tabla{overflow-x:auto}
+.tabla table{font-size:13px}
+.tabla td.cod{font-weight:600;letter-spacing:.06em;white-space:nowrap}
+.tabla td.enl{color:#667085;word-break:break-all;min-width:220px}
+a.boton{display:inline-block;border:1px solid #2457d6;color:#2457d6;border-radius:8px;padding:9px 12px;font-size:14px;font-weight:650;text-decoration:none;background:#fff}
 h1{font-size:22px;margin:0 0 6px}
 h2{font-size:16px;margin:0 0 10px}
 .sub{margin:0 0 18px;color:#667085;font-size:14px}
@@ -42,8 +50,9 @@ code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
 </head>
 <body>
 <main>
+  <nav><a class="act" href="admin.html">Cargar evento</a><a href="editor.html">Diseño</a><a href="panel.html">Estadísticas</a></nav>
   <h1>Cargar un evento</h1>
-  <p class="sub">Sube la lista de asistentes y se genera el archivo del evento. Cada alumno entra con su registro y descarga su certificado.</p>
+  <p class="sub">Sube la lista de asistentes y se genera todo solo: el código de validación, el enlace y el QR de cada alumno. Cada uno entra con su registro y descarga su certificado.</p>
 
   <div class="card">
     <h2>1. Datos del evento</h2>
@@ -88,8 +97,11 @@ code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
       <input id="enlace" type="text" readonly>
       <button id="copiar" type="button" class="sec" style="flex:0 0 auto">Copiar enlace</button>
     </div>
-    <p class="ayuda" style="margin-top:14px">Así se ve el certificado del primer alumno de la lista:</p>
+    <p class="ayuda" style="margin-top:14px">Cada alumno ya tiene su código y su enlace de validación. Los primeros de la lista:</p>
+    <div class="tabla" id="tablaRes"></div>
+    <p class="ayuda" style="margin-top:14px">Así se ve el certificado del primer alumno. El nombre, el código, el enlace y el QR se toman solos de cada alumno:</p>
     <canvas id="vista"></canvas>
+    <div class="acciones"><a class="boton" id="irEditor" href="editor.html?muestra=1">Acomodar el diseño con estos datos</a></div>
   </div>
 </main>
 
@@ -162,11 +174,20 @@ $('gen').addEventListener('click', async () => {
     if (!prueba || prueba.nombre !== alumnos[0].nombre) throw new Error('verificacion');
     salida = { json, filas, o };
     if (!plantilla) plantilla = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
+    filas.forEach(f => { f.enlace = base() + '?c=' + f.codigo.replace(/ /g, ''); });
     const datos = { nombre: prueba.nombre, evento: o.evento, fecha: o.fecha, emisor: o.emisor, horas: o.horas, codigo: prueba.codigoFormato,
       enlace: base() + '?c=' + prueba.codigo, enlacecorto: base().replace(/^https?:\/\//, '').replace(/\/$/, '') };
     const r = await Cert.dibujar(plantilla, datos);
     const cv = $('vista'); cv.width = r.canvas.width; cv.height = r.canvas.height; cv.getContext('2d').drawImage(r.canvas, 0, 0);
     $('enlace').value = base() + 'certificado.html?e=' + lote;
+    const tr = $('tablaRes'); tr.textContent = '';
+    const tb = document.createElement('table'), cab = tb.createTHead().insertRow();
+    ['Registro', 'Nombre', 'Código', 'Enlace de validación'].forEach(x => { const c = document.createElement('th'); c.textContent = x; cab.appendChild(c); });
+    const cu = tb.createTBody();
+    filas.slice(0, 5).forEach(f => { const r2 = cu.insertRow(); r2.insertCell().textContent = f.reg; r2.insertCell().textContent = f.nombre;
+      const c3 = r2.insertCell(); c3.className = 'cod'; c3.textContent = f.codigo; const c4 = r2.insertCell(); c4.className = 'enl'; c4.textContent = f.enlace; });
+    tr.appendChild(tb);
+    try { sessionStorage.setItem('muestra', JSON.stringify(datos)); } catch (e) { /* sin almacenamiento, el editor usa datos de ejemplo */ }
     $('res').classList.remove('oculto');
     msg('estado', 'bien', 'Archivo generado y comprobado: ' + alumnos.length + ' alumnos en ' + ((performance.now() - t0) / 1000).toFixed(1) + ' segundos.');
   } catch (e) { msg('estado', 'mal', 'No se pudo generar el archivo. Revisa los datos e intenta de nuevo.'); }
@@ -181,7 +202,7 @@ $('dlJson').onclick = () => salida && bajar(JSON.stringify(salida.json), 'applic
 $('dlCsv').onclick = () => {
   if (!salida) return;
   const q = s => '"' + String(s).replace(/"/g, '""') + '"';
-  const csv = '﻿' + ['Registro,Nombre completo,Codigo de validacion', ...salida.filas.map(f => [q(f.reg), q(f.nombre), q(f.codigo)].join(','))].join('\r\n');
+  const csv = '﻿' + ['Registro,Nombre completo,Codigo de validacion,Enlace de validacion', ...salida.filas.map(f => [q(f.reg), q(f.nombre), q(f.codigo), q(f.enlace)].join(','))].join('\r\n');
   bajar(csv, 'text/csv;charset=utf-8', 'Lista ' + salida.json.lote + '.csv');
 };
 $('copiar').onclick = async () => {

@@ -7,6 +7,7 @@ Plataforma para que los asistentes de un evento descarguen su certificado en PDF
 - `admin.html`: la institución carga el Excel (registro y nombre completo) y obtiene el archivo del evento.
 - `certificado.html?e=CODIGO`: el alumno escribe su registro, ve su certificado y lo descarga.
 - `editor.html`: editor visual del diseño. Sube tu fondo, arrastra nombre, QR y textos, y descarga `plantilla.json` (y el fondo) para subirlos al repositorio.
+- `panel.html`: estadísticas de uso (vistas, búsquedas, descargas, alumnos más buscados).
 - `index.html`: verificación del certificado por código o por QR.
 
 ## Cómo se usa
@@ -19,6 +20,11 @@ Plataforma para que los asistentes de un evento descarguen su certificado en PDF
 
 El fondo es una sola imagen (`fondo.svg`) y se reutiliza para todos. Solo cambian nombre, código y QR.
 Para usar otro diseño, abrir `editor.html`, subir el fondo (PNG, JPG o SVG, de preferencia A4 horizontal) y acomodar los elementos. También se pueden ajustar a mano posiciones y tamaños en `plantilla.json`.
+
+## Estadísticas
+
+Los datos se guardan en una hoja de Google tuya, mediante `estadisticas.gs`. Se configura una sola vez desde `panel.html`, que explica los pasos y genera el `config.json` para subir al repositorio. Mientras `config.json` esté vacío no se cuenta nada.
+Se registra: cada vista de la página del alumno, cada búsqueda (registro escrito, nombre si se encontró, y si tuvo resultado) y cada descarga (PDF o PNG). La hoja es privada y la lectura desde el panel pide la clave que pongas en el script.
 
 ## Privacidad
 
