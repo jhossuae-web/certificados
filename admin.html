@@ -118,7 +118,10 @@ code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
         <div><label for="nev">Nombre del evento</label><input id="nev" type="text" autocomplete="off"></div>
         <div><label for="emi">Institución / Empresa (opcional)</label><input id="emi" type="text" autocomplete="off"></div>
       </div>
-      <p class="ayuda" id="ayudaNombre">El nombre del evento no se imprime en el certificado. Sirve para identificarlo en la lista y en la página de validación. Código del evento: <b id="loteTxt" class="codigo" style="font-size:14px">----</b></p>
+      <p class="ayuda" id="ayudaNombre">El nombre del evento no se imprime en el certificado. Sirve para identificarlo en la lista y en la página de validación.</p>
+      <div style="margin-top:12px;max-width:260px"><label for="lot">Código del evento (4 letras o números)</label><input id="lot" type="text" maxlength="4" autocomplete="off" spellcheck="false" style="text-transform:uppercase;letter-spacing:.2em;font-weight:600"></div>
+      <p class="ayuda" id="lotMsg"></p>
+      <p class="ayuda" id="lotEnlace"></p>
       <label for="xls" id="lblXls">Lista de asistentes (Excel o CSV con registro y nombre completo)</label>
       <input id="xls" type="file" accept=".xlsx,.xls,.csv">
       <p class="ayuda" id="ayudaXls">La primera fila debe tener los encabezados. Si no los tiene, se toma la columna 1 como registro y la 2 como nombre.</p>
@@ -178,6 +181,7 @@ const $ = id => document.getElementById(id);
 const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 const GH = Cert.GH;
 const base = () => new URL('./', location.href).href;
+const enlaceEvento = c => base() + c.toLowerCase() + '/';
 let eventos = [], modo = 'nuevo', lote = '', alumnos = [], actual = null, plBase = null, filasCsv = null;
 
 function msg(id, tipo, texto) {
@@ -218,7 +222,7 @@ function pintarEventos() {
     const card = h('div', 'card ev'), info = h('div'); info.appendChild(h('b', '', ev.nombre));
     info.appendChild(h('span', 'ayuda', ev.alumnos + ' alumnos  ·  creado ' + fechaCorta(ev.creado) + '  ·  código ' + ev.lote));
     const ac = h('div', 'acciones');
-    const enlace = base() + 'certificado.html?e=' + ev.lote;
+    const enlace = enlaceEvento(ev.lote);
     const bc = h('button', 'sec', 'Copiar enlace'); bc.type = 'button';
     bc.onclick = async () => { try { await navigator.clipboard.writeText(enlace); bc.textContent = 'Copiado'; } catch (e) { bc.textContent = enlace; } setTimeout(() => { bc.textContent = 'Copiar enlace'; }, 1800); };
     const ab = h('a', 'boton', 'Abrir'); ab.href = enlace; ab.target = '_blank'; ab.rel = 'noopener';
@@ -256,14 +260,47 @@ $('ghGuardar').onclick = async () => {
 $('ghOlvidar').onclick = () => { GH.olvidar(); pintarConexion(); msg('ghEstado', 'bien', 'Desconectado. El token se borró de este navegador.'); };
 
 /* ---------- Evento (nuevo o editar) ---------- */
-async function nuevoLote() {
-  for (let i = 0; i < 15; i++) {
-    const c = Cert.azar(4); let existe = eventos.some(e => e.lote === c);
-    if (!existe) { try { existe = (await fetch(c + '.json', { cache: 'no-store' })).ok; } catch (e) { existe = false; } }
-    if (!existe) return c;
-  }
-  throw new Error('No pude generar un código libre');
+const PARADAS = new Set(['de', 'del', 'la', 'las', 'el', 'los', 'y', 'e', 'en', 'para', 'por', 'con', 'un', 'una', 'al', 'a']);
+function sugerirLote(nombre) {
+  const t = (nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+  const pal = t.filter(w => !/^[0-9]+$/.test(w) && !PARADAS.has(w.toLowerCase()));
+  const num = t.filter(w => /^[0-9]+$/.test(w)).pop() || '';
+  let letras = pal.map(w => w[0]).join('');
+  if (num) letras = letras.slice(0, 4 - Math.min(2, num.length)) + num.slice(-2);
+  if (letras.length < 4 && pal[0]) letras = (letras + pal[0].slice(1)).slice(0, 4);
+  return letras.slice(0, 4);
 }
+/* Devuelve el evento que ya usa ese código, o null. Mira la lista y, por si acaso, el repositorio. */
+async function usoDeLote(c) {
+  const e = eventos.find(x => x.lote === c); if (e) return e.nombre || c;
+  try { if ((await fetch(c + '.json', { cache: 'no-store' })).ok) return 'otro evento'; } catch (x) { /* sin red, se revisa al guardar */ }
+  return null;
+}
+let loteTocado = false, loteSeq = 0;
+async function revisarLote() {
+  const n = ++loteSeq, c = $('lot').value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  if ($('lot').value !== c) $('lot').value = c;
+  lote = c; const m = $('lotMsg'); m.style.color = '#667085';
+  $('lotEnlace').textContent = c.length === 4 ? 'Enlace para los alumnos: ' + enlaceEvento(c) : '';
+  if (modo === 'editar') { m.textContent = 'El código no se puede cambiar en un evento ya publicado.'; return actualizarGuardar(); }
+  if (c.length < 4) { m.textContent = c ? 'Faltan ' + (4 - c.length) + ' caracteres.' : 'Escribe 4 letras o números. Por ejemplo, las siglas del evento.'; return actualizarGuardar(); }
+  m.textContent = 'Revisando...';
+  const uso = await usoDeLote(c); if (n !== loteSeq) return;
+  if (uso) { m.style.color = '#b42318'; m.textContent = 'El código ' + c + ' ya está en uso por "' + uso + '". Elige otro.'; }
+  else { m.style.color = '#067647'; m.textContent = 'El código ' + c + ' está libre.'; }
+  actualizarGuardar();
+}
+async function loteLibre(c) {
+  if (!/^[A-Z0-9]{4}$/.test(c)) return false;
+  return !(await usoDeLote(c));
+}
+$('lot').addEventListener('input', () => { loteTocado = true; revisarLote(); });
+$('nev').addEventListener('input', async () => {
+  if (modo !== 'nuevo' || loteTocado) return;
+  let c = sugerirLote($('nev').value); if (c.length < 4) { $('lot').value = c; return revisarLote(); }
+  const base4 = c; for (let k = 2; k < 10 && eventos.some(x => x.lote === c); k++) c = base4.slice(0, 3) + k;
+  $('lot').value = c; revisarLote();
+});
 async function plantillaBase() { if (!plBase) plBase = await (await fetch('plantilla.json', { cache: 'no-store' })).json(); return plBase; }
 
 async function abrirEvento(m, ev) {
@@ -271,11 +308,11 @@ async function abrirEvento(m, ev) {
   $('prev').textContent = ''; $('xls').value = ''; $('resultado').classList.add('oculto'); $('pasos').textContent = ''; msg('estado', '', ''); $('barra').classList.add('oculto');
   let pl = await plantillaBase();
   if (m === 'nuevo') {
-    lote = await nuevoLote(); $('nev').value = ''; $('emi').value = ''; $('nev').disabled = false; $('emi').disabled = false;
+    lote = ''; loteTocado = false; $('lot').value = ''; $('lot').disabled = false; $('nev').value = ''; $('emi').value = ''; $('nev').disabled = false; $('emi').disabled = false;
     $('tituloEvento').textContent = 'Nuevo evento'; $('lblXls').textContent = 'Lista de asistentes (Excel o CSV con registro y nombre completo)';
     $('ayudaXls').textContent = 'La primera fila debe tener los encabezados. Si no los tiene, se toma la columna 1 como registro y la 2 como nombre.';
   } else {
-    lote = ev.lote; $('tituloEvento').textContent = 'Editar evento';
+    lote = ev.lote; $('lot').value = ev.lote; $('lot').disabled = true; $('tituloEvento').textContent = 'Editar evento';
     try {
       const a = GH.conectado() ? await GH.leerJson(lote + '.json') : null;
       actual = a || { json: await (await fetch(lote + '.json', { cache: 'no-store' })).json() };
@@ -285,7 +322,7 @@ async function abrirEvento(m, ev) {
     $('lblXls').textContent = 'Agregar alumnos nuevos (opcional)';
     $('ayudaXls').textContent = 'Solo se agregan los registros que todavía no están. Los alumnos que ya tienen certificado conservan su código.';
   }
-  $('loteTxt').textContent = lote;
+  revisarLote();
   const sel = $('selDiseno'); sel.textContent = ''; sel.appendChild(h('option', '', 'Diseño base')).value = '';
   eventos.filter(e => e.lote !== lote).forEach(e => { const o = h('option', '', e.nombre); o.value = e.lote; sel.appendChild(o); });
   mostrar('vEvento'); Cert.Editor.iniciar(pl); actualizarGuardar();
@@ -301,10 +338,11 @@ $('selDiseno').onchange = async () => {
 $('cancelar').onclick = inicio; $('volver').onclick = inicio;
 
 function actualizarGuardar() {
-  const ok = $('nev').value.trim() && (modo === 'editar' || alumnos.length);
+  const libre = modo === 'editar' || ($('lotMsg').style.color === 'rgb(6, 118, 71)' || $('lotMsg').style.color === '#067647');
+  const ok = $('nev').value.trim() && libre && (modo === 'editar' || alumnos.length);
   $('gen').disabled = !ok;
   $('resumen').textContent = modo === 'nuevo'
-    ? (alumnos.length ? 'Se guardará "' + ($('nev').value.trim() || 'sin nombre') + '" con ' + alumnos.length + ' alumnos y el diseño que acomodaste.' : 'Escribe el nombre del evento y sube la lista de asistentes para poder guardar.')
+    ? (alumnos.length && libre ? 'Se guardará "' + ($('nev').value.trim() || 'sin nombre') + '" con ' + alumnos.length + ' alumnos y el diseño que acomodaste.' : 'Para guardar falta: nombre del evento, un código libre de 4 caracteres y la lista de asistentes.')
     : 'Se actualizará el diseño' + (alumnos.length ? ' y se agregarán los alumnos nuevos.' : '. Si no subes una lista, los alumnos quedan igual.');
 }
 $('nev').addEventListener('input', actualizarGuardar);
@@ -335,6 +373,11 @@ $('xls').addEventListener('change', async e => {
 });
 
 /* ---------- Guardar y publicar ---------- */
+function paginaEnlace(c) {
+  const u = '../certificado.html?e=' + c;
+  return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Certificado</title>\n'
+    + '<script>location.replace(' + JSON.stringify(u) + ' + location.hash)<\/script></head>\n<body><p><a href="' + u + '">Continuar a la descarga del certificado</a></p></body></html>\n';
+}
 function pasosUI(lista) {
   const ul = $('pasos'); ul.textContent = ''; const lis = lista.map(t => ul.appendChild(h('li', '', t)));
   return n => { lis.forEach((li, i) => { li.className = i < n ? 'hecho' : (i === n ? 'activo' : ''); }); };
@@ -343,9 +386,10 @@ $('gen').addEventListener('click', async () => {
   if (!GH.conectado()) { msg('estado', 'mal', 'Primero conecta tu GitHub en la pestaña Conexión.'); return; }
   const b = $('gen'); b.disabled = true; msg('estado', '', ''); $('resultado').classList.add('oculto');
   const nuevo = modo === 'nuevo', nombre = $('nev').value.trim(), inst = $('emi').value.trim();
+  if (nuevo && !(await loteLibre(lote))) { msg('estado', 'mal', 'Ese código ya está en uso o no es válido. Cámbialo y vuelve a guardar.'); b.disabled = false; revisarLote(); return; }
   const { plantilla, fondoNuevo } = Cert.Editor.obtener();
   const subeFondo = !!fondoNuevo;
-  const marcar = pasosUI(['Generando códigos y QR de cada alumno', subeFondo ? 'Subiendo el diseño' : null, 'Guardando el evento', 'Actualizando la lista de eventos'].filter(Boolean));
+  const marcar = pasosUI(['Generando códigos y QR de cada alumno', subeFondo ? 'Subiendo el diseño' : null, 'Guardando el evento', 'Creando el enlace', 'Actualizando la lista de eventos'].filter(Boolean));
   let n = 0; marcar(n); $('barra').classList.remove('oculto'); $('prog').style.width = '0';
   const progreso = (x, t) => { $('prog').style.width = (100 * x / t).toFixed(1) + '%'; };
   try {
@@ -361,6 +405,7 @@ $('gen').addEventListener('click', async () => {
     marcar(++n);
     if (subeFondo) { await GH.escribir('fondos/' + lote + '.' + fondoNuevo.ext, { base64: await GH.b64archivo(fondoNuevo.file) }, 'Diseño del evento ' + lote); marcar(++n); }
     await GH.escribir(lote + '.json', { texto: JSON.stringify(json) }, (nuevo ? 'Agrega' : 'Actualiza') + ' el evento ' + lote); marcar(++n);
+    await GH.escribir(lote.toLowerCase() + '/index.html', { texto: paginaEnlace(lote) }, 'Enlace del evento ' + lote); marcar(++n);
     const l = await GH.leerJson('eventos.json'), doc = l ? l.json : { v: 1, eventos: [] }, ahora = new Date().toISOString();
     const fila = doc.eventos.find(e => e.lote === lote), total = Object.keys(json.r).length;
     if (fila) { fila.alumnos = total; fila.actualizado = ahora; }
@@ -370,7 +415,7 @@ $('gen').addEventListener('click', async () => {
     const enlaceBase = base();
     filas.forEach(f => { f.enlace = enlaceBase + '?c=' + f.codigo.replace(/ /g, ''); });
     filasCsv = filas.length ? { lote, filas } : null;
-    $('enlace').value = enlaceBase + 'certificado.html?e=' + lote;
+    $('enlace').value = enlaceEvento(lote);
     $('dlCsv').classList.toggle('oculto', !filasCsv);
     const tr = $('tablaRes'); tr.textContent = '';
     if (filas.length) {

@@ -5,7 +5,7 @@ Plataforma para que los asistentes de un evento descarguen su certificado en PDF
 ## Páginas
 
 - `admin.html`: lista de eventos, creación y edición de eventos, y conexión con GitHub.
-- `certificado.html?e=CODIGO`: el alumno escribe su registro, ve su certificado y lo descarga.
+- `CODIGO/` (por ejemplo `/tia6/`): enlace corto de cada evento. El alumno escribe su registro, ve su certificado y lo descarga. Detrás está `certificado.html?e=CODIGO`, que también funciona.
 - `panel.html`: estadísticas de uso (vistas, búsquedas, descargas, alumnos más buscados).
 - `index.html`: verificación del certificado por código o por QR.
 
@@ -21,7 +21,7 @@ El token queda guardado solo en el navegador donde lo pegaste. No se sube al rep
 
 En `admin.html` tocar Nuevo evento:
 
-1. Evento: nombre del evento, Institución o Empresa (opcional) y el Excel o CSV con registro y nombre completo.
+1. Evento: nombre del evento, código de 4 letras o números (se sugiere solo con las siglas y lo puedes cambiar; si ya lo usa otro evento, avisa cuál), Institución o Empresa (opcional) y el Excel o CSV con registro y nombre completo.
 2. Diseño: subir la imagen del certificado ya terminada (PNG, JPG o SVG) y arrastrar a su lugar el nombre, el QR, el código de validación y el texto "Verifica en". Se puede partir del diseño de otro evento.
 3. Guardar y publicar: sube a GitHub el diseño, el archivo del evento y actualiza la lista de eventos.
 
@@ -33,12 +33,13 @@ Solo cuatro elementos: el nombre, el QR, el código de validación y el texto "V
 
 ## Editar un evento
 
-Desde la lista, Editar permite cambiar el diseño y agregar alumnos nuevos. Los códigos ya entregados siguen siendo válidos. El nombre del evento y la institución quedan fijos porque forman parte de la validación cifrada.
+Desde la lista, Editar permite cambiar el diseño y agregar alumnos nuevos. Los códigos ya entregados siguen siendo válidos. El código, el nombre del evento y la institución quedan fijos porque forman parte de la validación cifrada.
 
 ## Archivos que genera
 
 - `CODIGO.json`: datos cifrados del evento y su diseño.
 - `fondos/CODIGO.ext`: imagen del diseño de cada evento.
+- `codigo/index.html`: carpeta pequeña por evento (en minúsculas) que da el enlace corto.
 - `eventos.json`: lista de eventos para el panel de administración.
 
 ## Estadísticas

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
+<script>document.write('<base href="' + new URL('./', location.href).href + '">')</script>
 <title>Descarga tu certificado</title>
 <style>
 *{box-sizing:border-box}
@@ -67,7 +68,15 @@ function aviso(tipo, texto) {
   const d = document.createElement('div'); d.className = 'msg ' + tipo; d.textContent = texto; a.appendChild(d);
 }
 function base(p) {
-  return (p && p.verificador) || new URL('./', location.href).href;
+  return (p && p.verificador) || document.baseURI;
+}
+/* Si el evento tiene su carpeta, deja en la barra el enlace corto (.../tia6/) sin recargar. */
+async function limpiarEnlace(codigo) {
+  if (!params.get('e') || !history.replaceState) return;
+  try {
+    const carpeta = codigo.toLowerCase() + '/';
+    if ((await fetch(carpeta + 'index.html', { method: 'HEAD', cache: 'no-store' })).ok) history.replaceState(null, '', document.baseURI + carpeta + location.hash);
+  } catch (e) { /* se queda el enlace largo */ }
 }
 async function cargarEvento(codigo) {
   evento = null; $('evento').classList.add('oculto');
@@ -78,6 +87,7 @@ async function cargarEvento(codigo) {
   } catch (e) { aviso('mal', 'No encontramos ese evento. Revisa el enlace o el código que te dio la institución.'); return false; }
   if (!j.r || !j.ev) { aviso('info', 'Este evento todavía no tiene la descarga de certificados habilitada. Consulta con la institución.'); return false; }
   evento = j; aviso('', '');
+  limpiarEnlace(codigo);
   const box = $('evento'); box.textContent = '';
   const b = document.createElement('b'); b.textContent = j.ev.n; box.appendChild(b);
   const s = document.createElement('span'); s.textContent = [j.ev.e].filter(Boolean).join('  ·  '); box.appendChild(s);
