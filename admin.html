@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Cargar evento</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center;padding:28px 16px}
+main{width:100%;max-width:760px}
+h1{font-size:22px;margin:0 0 6px}
+h2{font-size:16px;margin:0 0 10px}
+.sub{margin:0 0 18px;color:#667085;font-size:14px}
+.card{background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #17203308}
+label{display:block;font-size:13px;color:#475467;margin:12px 0 4px}
+label:first-of-type{margin-top:0}
+input[type=text]{width:100%;border:1px solid #d5dbe5;border-radius:8px;padding:11px;font:inherit;background:#fff}
+input[type=file]{width:100%;font:inherit}
+.fila{display:flex;gap:10px;flex-wrap:wrap}
+.fila>div{flex:1;min-width:200px}
+button{border:0;border-radius:8px;padding:12px 16px;background:#2457d6;color:#fff;font:inherit;font-weight:650;cursor:pointer}
+button.sec{background:#fff;color:#2457d6;border:1px solid #2457d6}
+button:disabled{opacity:.55;cursor:default}
+.ayuda{font-size:12px;color:#667085;margin:4px 0 0}
+.msg{margin:10px 0 0;padding:10px 12px;border-radius:8px;font-size:14px;background:#f2f4f7;color:#475467}
+.msg.mal{background:#fef3f2;color:#b42318}
+.msg.bien{background:#ecfdf3;color:#067647}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e5e9f0}
+th{color:#667085;font-weight:600;font-size:12px}
+.codigo{font:600 22px/1 system-ui;letter-spacing:.14em}
+.barra{height:8px;background:#e5e9f0;border-radius:6px;overflow:hidden;margin-top:12px}
+.barra i{display:block;height:100%;width:0;background:#2457d6;transition:width .15s}
+canvas{display:block;width:100%;height:auto;border:1px solid #e5e9f0;border-radius:6px;margin-top:12px}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+ol{margin:8px 0 0;padding-left:20px;font-size:14px;color:#344054}
+ol li{margin-bottom:4px}
+code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
+.oculto{display:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>Cargar un evento</h1>
+  <p class="sub">Sube la lista de asistentes y se genera el archivo del evento. Cada alumno entra con su registro y descarga su certificado.</p>
+
+  <div class="card">
+    <h2>1. Datos del evento</h2>
+    <label for="nev">Nombre del evento</label>
+    <input id="nev" type="text" placeholder="Ej. Jornada de Marketing Digital 2026" autocomplete="off">
+    <div class="fila">
+      <div><label for="fec">Fecha del evento</label><input id="fec" type="text" placeholder="Ej. 15 de noviembre de 2026" autocomplete="off"></div>
+      <div><label for="hor">Carga horaria (opcional)</label><input id="hor" type="text" placeholder="Ej. 8 horas académicas" autocomplete="off"></div>
+    </div>
+    <label for="emi">Institución que emite</label>
+    <input id="emi" type="text" placeholder="Ej. Quimera Group" autocomplete="off">
+  </div>
+
+  <div class="card">
+    <h2>2. Lista de asistentes</h2>
+    <label for="xls">Archivo Excel o CSV con las columnas registro y nombre completo</label>
+    <input id="xls" type="file" accept=".xlsx,.xls,.csv">
+    <p class="ayuda">La primera fila debe tener los encabezados. Si no los tiene, se toma la columna 1 como registro y la 2 como nombre.</p>
+    <div id="prev"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Generar</h2>
+    <p class="ayuda" style="margin:0 0 10px">Código del evento: <b id="lote" class="codigo">----</b> <button class="sec" id="otro" type="button" style="padding:4px 10px;font-size:13px;margin-left:8px">Otro código</button></p>
+    <button id="gen" disabled>Generar archivo del evento</button>
+    <div class="barra oculto" id="barra"><i id="prog"></i></div>
+    <div id="estado"></div>
+  </div>
+
+  <div class="card oculto" id="res">
+    <h2>4. Listo, publica el archivo</h2>
+    <div class="acciones">
+      <button id="dlJson" type="button">Descargar archivo del evento</button>
+      <button id="dlCsv" type="button" class="sec">Descargar lista con códigos (CSV)</button>
+    </div>
+    <ol>
+      <li>Sube el archivo descargado a la carpeta principal del repositorio, junto a <code>index.html</code> (GitHub, Add file, Upload files, Commit changes).</li>
+      <li>Espera uno o dos minutos a que GitHub Pages lo publique.</li>
+      <li>Comparte este enlace con los alumnos:</li>
+    </ol>
+    <div class="fila" style="margin-top:8px">
+      <input id="enlace" type="text" readonly>
+      <button id="copiar" type="button" class="sec" style="flex:0 0 auto">Copiar enlace</button>
+    </div>
+    <p class="ayuda" style="margin-top:14px">Así se ve el certificado del primer alumno de la lista:</p>
+    <canvas id="vista"></canvas>
+  </div>
+</main>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/qrcode.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="nucleo.js"></script>
+<script src="dibujo.js"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+let alumnos = [], lote = '', plantilla = null, salida = null;
+
+function msg(id, tipo, texto) {
+  const c = $(id); c.textContent = '';
+  if (!texto) return;
+  const d = document.createElement('div'); d.className = 'msg ' + (tipo || ''); d.textContent = texto; c.appendChild(d);
+}
+function base() { return (plantilla && plantilla.verificador) || new URL('./', location.href).href; }
+
+async function nuevoLote() {
+  for (let i = 0; i < 12; i++) {
+    const c = Cert.azar(4); let existe = false;
+    try { existe = (await fetch(c + '.json', { cache: 'no-store' })).ok; } catch (e) { existe = false; }
+    if (!existe) { lote = c; break; }
+  }
+  $('lote').textContent = lote || '----'; actualizarBoton();
+}
+function actualizarBoton() {
+  $('gen').disabled = !(alumnos.length && $('nev').value.trim() && lote);
+}
+
+$('otro').onclick = nuevoLote;
+['nev', 'fec', 'hor', 'emi'].forEach(i => $(i).addEventListener('input', actualizarBoton));
+
+$('xls').addEventListener('change', async e => {
+  const f = e.target.files[0]; alumnos = []; $('prev').textContent = ''; actualizarBoton();
+  if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    const hoja = wb.Sheets[wb.SheetNames[0]];
+    const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, raw: false, defval: '' });
+    const r = Cert.leerFilas(filas); alumnos = r.alumnos;
+    const p = $('prev');
+    if (!alumnos.length) { msg('prev', 'mal', 'No se encontraron alumnos. Revisa que el archivo tenga registro y nombre completo.'); return; }
+    const t = document.createElement('table');
+    const th = t.createTHead().insertRow(); ['Registro', 'Nombre completo'].forEach(x => { const c = document.createElement('th'); c.textContent = x; th.appendChild(c); });
+    const tb = t.createTBody();
+    alumnos.slice(0, 5).forEach(a => { const tr = tb.insertRow(); tr.insertCell().textContent = a.regOriginal; tr.insertCell().textContent = a.nombre; });
+    const info = document.createElement('div'); info.className = 'msg bien';
+    let txt = alumnos.length + ' alumnos listos.';
+    if (r.avisos.duplicados.length) txt += ' Registros repetidos que se omitieron: ' + [...new Set(r.avisos.duplicados)].slice(0, 8).join(', ') + '.';
+    if (r.avisos.vacios) txt += ' Filas sin registro o sin nombre omitidas: ' + r.avisos.vacios + '.';
+    info.textContent = txt;
+    p.append(info, t);
+  } catch (err) { msg('prev', 'mal', 'No pude leer ese archivo. Prueba guardarlo de nuevo como .xlsx o .csv.'); }
+  actualizarBoton();
+});
+
+$('gen').addEventListener('click', async () => {
+  const b = $('gen'); b.disabled = true; $('res').classList.add('oculto'); msg('estado', '', '');
+  $('barra').classList.remove('oculto'); $('prog').style.width = '0';
+  const t0 = performance.now();
+  try {
+    const o = { lote, evento: $('nev').value.trim(), fecha: $('fec').value.trim(), horas: $('hor').value.trim(), emisor: $('emi').value.trim(),
+      alumnos, onProgreso: (h, n) => { $('prog').style.width = (100 * h / n).toFixed(1) + '%'; } };
+    const { json, filas } = await Cert.construirLote(o);
+    const prueba = await Cert.buscar(json, alumnos[0].reg);
+    if (!prueba || prueba.nombre !== alumnos[0].nombre) throw new Error('verificacion');
+    salida = { json, filas, o };
+    if (!plantilla) plantilla = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
+    const datos = { nombre: prueba.nombre, evento: o.evento, fecha: o.fecha, emisor: o.emisor, horas: o.horas, codigo: prueba.codigoFormato,
+      enlace: base() + '?c=' + prueba.codigo, enlacecorto: base().replace(/^https?:\/\//, '').replace(/\/$/, '') };
+    const r = await Cert.dibujar(plantilla, datos);
+    const cv = $('vista'); cv.width = r.canvas.width; cv.height = r.canvas.height; cv.getContext('2d').drawImage(r.canvas, 0, 0);
+    $('enlace').value = base() + 'certificado.html?e=' + lote;
+    $('res').classList.remove('oculto');
+    msg('estado', 'bien', 'Archivo generado y comprobado: ' + alumnos.length + ' alumnos en ' + ((performance.now() - t0) / 1000).toFixed(1) + ' segundos.');
+  } catch (e) { msg('estado', 'mal', 'No se pudo generar el archivo. Revisa los datos e intenta de nuevo.'); }
+  finally { $('barra').classList.add('oculto'); b.disabled = false; }
+});
+
+function bajar(contenido, tipo, nombre) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([contenido], { type: tipo })); a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$('dlJson').onclick = () => salida && bajar(JSON.stringify(salida.json), 'application/json', salida.json.lote + '.json');
+$('dlCsv').onclick = () => {
+  if (!salida) return;
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  const csv = '﻿' + ['Registro,Nombre completo,Codigo de validacion', ...salida.filas.map(f => [q(f.reg), q(f.nombre), q(f.codigo)].join(','))].join('\r\n');
+  bajar(csv, 'text/csv;charset=utf-8', 'Lista ' + salida.json.lote + '.csv');
+};
+$('copiar').onclick = async () => {
+  try { await navigator.clipboard.writeText($('enlace').value); $('copiar').textContent = 'Copiado'; }
+  catch (e) { $('enlace').select(); }
+  setTimeout(() => { $('copiar').textContent = 'Copiar enlace'; }, 1800);
+};
+
+nuevoLote();
+})();
+</script>
+</body>
+</html>

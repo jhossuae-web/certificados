@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Descarga tu certificado</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center;padding:28px 16px}
+main{width:100%;max-width:760px}
+h1{font-size:22px;margin:0 0 6px}
+.sub{margin:0 0 18px;color:#667085;font-size:14px}
+.evento{margin:0 0 18px;padding:12px 14px;background:#fff;border:1px solid #e5e9f0;border-radius:10px}
+.evento b{display:block;font-size:17px}
+.evento span{color:#667085;font-size:14px}
+form{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+label{display:block;width:100%;font-size:13px;color:#475467;margin-bottom:-2px}
+input{flex:1;min-width:0;border:1px solid #d5dbe5;border-radius:8px;padding:12px;font:inherit;background:#fff}
+input.cod{text-transform:uppercase;letter-spacing:.08em}
+button{border:0;border-radius:8px;padding:12px 16px;background:#2457d6;color:#fff;font:inherit;font-weight:650;cursor:pointer}
+button.sec{background:#fff;color:#2457d6;border:1px solid #2457d6}
+button:disabled{opacity:.6;cursor:default}
+.msg{margin:0 0 14px;padding:12px 14px;border-radius:10px;font-size:14px}
+.msg.mal{background:#fef3f2;color:#b42318}
+.msg.info{background:#f2f4f7;color:#475467}
+.card{background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:14px;box-shadow:0 4px 18px #17203308}
+canvas{display:block;width:100%;height:auto;border:1px solid #e5e9f0;border-radius:6px}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.acciones button{flex:1;min-width:150px}
+.nota{margin:12px 0 0;font-size:13px;color:#667085}
+.oculto{display:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>Descarga tu certificado</h1>
+  <p class="sub">Escribe tu número de registro tal como figura en la lista de asistentes.</p>
+  <div id="evento" class="evento oculto"></div>
+  <div id="aviso"></div>
+  <form id="f">
+    <label id="lblE" class="oculto" for="e">Código del evento</label>
+    <input id="e" class="cod oculto" type="text" maxlength="4" placeholder="Ej. ABYK" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <label for="reg">Tu registro</label>
+    <input id="reg" type="text" inputmode="text" placeholder="Ej. 2020123" autocomplete="off" spellcheck="false">
+    <button id="ir" type="submit">Ver mi certificado</button>
+  </form>
+  <div id="out"></div>
+</main>
+
+<script src="lib/qrcode.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="nucleo.js"></script>
+<script src="dibujo.js"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+let lote = (params.get('e') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+let evento = null, plantilla = null;
+
+function aviso(tipo, texto) {
+  const a = $('aviso'); a.textContent = '';
+  if (!texto) return;
+  const d = document.createElement('div'); d.className = 'msg ' + tipo; d.textContent = texto; a.appendChild(d);
+}
+function base() {
+  return (plantilla && plantilla.verificador) || new URL('./', location.href).href;
+}
+async function cargarEvento(codigo) {
+  evento = null; $('evento').classList.add('oculto');
+  let j;
+  try {
+    const r = await fetch(codigo + '.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('x'); j = await r.json();
+  } catch (e) { aviso('mal', 'No encontramos ese evento. Revisa el enlace o el código que te dio la institución.'); return false; }
+  if (!j.r || !j.ev) { aviso('info', 'Este evento todavía no tiene la descarga de certificados habilitada. Consulta con la institución.'); return false; }
+  evento = j; aviso('', '');
+  const box = $('evento'); box.textContent = '';
+  const b = document.createElement('b'); b.textContent = j.ev.n; box.appendChild(b);
+  const s = document.createElement('span'); s.textContent = [j.ev.f, j.ev.e].filter(Boolean).join('  ·  '); box.appendChild(s);
+  box.classList.remove('oculto');
+  return true;
+}
+
+if (!lote) { $('lblE').classList.remove('oculto'); $('e').classList.remove('oculto'); }
+else cargarEvento(lote);
+
+$('f').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const out = $('out'); out.textContent = ''; aviso('', '');
+  if (!lote) {
+    const c = $('e').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (c.length !== 4) { aviso('mal', 'El código del evento tiene 4 caracteres.'); return; }
+    lote = c;
+  }
+  if (!evento || evento.lote !== lote) { if (!await cargarEvento(lote)) { if (!params.get('e')) lote = ''; return; } }
+  const reg = $('reg').value;
+  if (!Cert.normReg(reg)) { aviso('mal', 'Escribe tu número de registro.'); return; }
+  const btn = $('ir'); btn.disabled = true; btn.textContent = 'Buscando...';
+  try {
+    const al = await Cert.buscar(evento, reg);
+    if (!al) { aviso('mal', 'No encontramos ese registro en este evento. Revisa que esté escrito como figura en la lista de asistentes.'); return; }
+    if (!plantilla) plantilla = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
+    const enlace = base() + '?c=' + al.codigo;
+    const datos = { nombre: al.nombre, evento: evento.ev.n, fecha: evento.ev.f, emisor: evento.ev.e, horas: evento.ev.h,
+      codigo: al.codigoFormato, enlace, enlacecorto: base().replace(/^https?:\/\//, '').replace(/\/$/, '') };
+    const res = await Cert.dibujar(plantilla, datos);
+    const card = document.createElement('div'); card.className = 'card';
+    res.canvas.setAttribute('aria-label', 'Certificado de ' + al.nombre); card.appendChild(res.canvas);
+    const ac = document.createElement('div'); ac.className = 'acciones';
+    const bp = document.createElement('button'); bp.textContent = 'Descargar PDF'; bp.onclick = () => Cert.descargarPDF(plantilla, res, al.nombre, enlace);
+    const bi = document.createElement('button'); bi.className = 'sec'; bi.textContent = 'Descargar PNG'; bi.onclick = () => Cert.descargarPNG(res, al.nombre);
+    ac.append(bp, bi); card.appendChild(ac);
+    const n = document.createElement('p'); n.className = 'nota';
+    n.textContent = 'Tu certificado se puede verificar con el código ' + al.codigoFormato + ' o escaneando el QR.'; card.appendChild(n);
+    out.appendChild(card);
+  } catch (e) { aviso('mal', 'No pudimos generar el certificado. Intenta de nuevo o abre la página con otro navegador.'); }
+  finally { btn.disabled = false; btn.textContent = 'Ver mi certificado'; }
+});
+})();
+</script>
+</body>
+</html>
