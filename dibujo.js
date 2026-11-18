@@ -3,23 +3,43 @@
 (function (root) {
 'use strict';
 
-const cache = {};
+/* Tipografías disponibles para nombre y textos. */
+const FUENTES = [
+  { n: 'Cormorant negrita', f: 'Cormorant', p: 700, s: 'normal', archivo: 'fonts/cormorant700.woff2' },
+  { n: 'Cormorant cursiva', f: 'Cormorant', p: 600, s: 'italic', archivo: 'fonts/cormorant600i.woff2' },
+  { n: 'Playfair negrita', f: 'Playfair', p: 700, s: 'normal', archivo: 'fonts/playfair700.woff2' },
+  { n: 'Lora negrita', f: 'Lora', p: 700, s: 'normal', archivo: 'fonts/lora700.woff2' },
+  { n: 'Lora cursiva', f: 'Lora', p: 400, s: 'italic', archivo: 'fonts/lora400i.woff2' },
+  { n: 'Great Vibes (caligrafía)', f: 'GreatVibes', p: 400, s: 'normal', archivo: 'fonts/greatvibes400.woff2' },
+  { n: 'Dancing Script (caligrafía)', f: 'DancingScript', p: 700, s: 'normal', archivo: 'fonts/dancingscript700.woff2' },
+  { n: 'Montserrat normal', f: 'Montserrat', p: 400, s: 'normal', archivo: 'fonts/montserrat400.woff2' },
+  { n: 'Montserrat negrita', f: 'Montserrat', p: 700, s: 'normal', archivo: 'fonts/montserrat700.woff2' },
+  { n: 'Poppins normal', f: 'Poppins', p: 400, s: 'normal', archivo: 'fonts/poppins400.woff2' },
+  { n: 'Poppins seminegrita', f: 'Poppins', p: 600, s: 'normal', archivo: 'fonts/poppins600.woff2' },
+  { n: 'Lato normal', f: 'Lato', p: 400, s: 'normal', archivo: 'fonts/lato400.woff2' },
+  { n: 'Lato negrita', f: 'Lato', p: 700, s: 'normal', archivo: 'fonts/lato700.woff2' }
+];
+const fuentesCargadas = {}, imagenes = {};
 
-function cargarRecursos(pl) {
-  const k = pl.fondo + '|' + (pl.fuentes || []).map(f => f.archivo).join(',');
-  if (cache[k]) return cache[k];
-  cache[k] = (async () => {
-    await Promise.all((pl.fuentes || []).map(async f => {
-      const ff = new FontFace(f.familia, 'url(' + f.archivo + ')', { weight: String(f.peso || 400), style: f.estilo || 'normal' });
-      await ff.load(); document.fonts.add(ff);
-    }));
-    const img = await new Promise((ok, mal) => {
-      const i = new Image(); i.onload = () => ok(i); i.onerror = () => mal(new Error('No se pudo cargar el fondo ' + pl.fondo)); i.src = pl.fondo;
-    });
-    return { img };
+function cargarFuente(f) {
+  if (!fuentesCargadas[f.archivo]) fuentesCargadas[f.archivo] = (async () => {
+    const ff = new FontFace(f.f, 'url(' + f.archivo + ')', { weight: String(f.p), style: f.s });
+    await ff.load(); document.fonts.add(ff);
   })();
-  return cache[k];
+  return fuentesCargadas[f.archivo];
 }
+function cargarImagen(src) {
+  if (!imagenes[src]) imagenes[src] = new Promise((ok, mal) => {
+    const i = new Image(); i.onload = () => ok(i); i.onerror = () => { delete imagenes[src]; mal(new Error('No se pudo cargar el fondo ' + src)); }; i.src = src;
+  });
+  return imagenes[src];
+}
+async function cargarRecursos(pl) {
+  const usadas = FUENTES.filter(f => pl.elementos.some(e => e.familia === f.f && (e.peso || 400) === f.p && (e.estilo || 'normal') === f.s));
+  const [img] = await Promise.all([cargarImagen(pl.fondo), ...usadas.map(cargarFuente)]);
+  return { img };
+}
+const esSvg = src => /\.svg(\?|$)/i.test(src);
 
 const fuente = (el, tam) => (el.estilo || 'normal') + ' ' + (el.peso || 400) + ' ' + tam + 'px ' + el.familia;
 
@@ -101,7 +121,7 @@ function descargarPNG(res, nombre) {
 function descargarPDF(pl, res, nombre, enlace) {
   const { jsPDF } = root.jspdf, ancho = 297, alto = +(297 * pl.alto / pl.ancho).toFixed(2);
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [ancho, alto] });
-  const png = /\.svg$/i.test(pl.fondo);
+  const png = esSvg(pl.fondo);
   pdf.addImage(res.canvas.toDataURL(png ? 'image/png' : 'image/jpeg', 0.95), png ? 'PNG' : 'JPEG', 0, 0, ancho, alto, undefined, 'FAST');
   const q = res.zonas.qr, k = ancho / pl.ancho;
   if (q && enlace) pdf.link(q.x * k, q.y * k, q.w * k, q.h * k, { url: enlace });
@@ -109,5 +129,5 @@ function descargarPDF(pl, res, nombre, enlace) {
   guardar(pdf.output('blob'), nombreArchivo(nombre, 'pdf'));
 }
 
-root.Cert = Object.assign(root.Cert || {}, { dibujar, descargarPNG, descargarPDF, nombreArchivo });
+root.Cert = Object.assign(root.Cert || {}, { dibujar, descargarPNG, descargarPDF, nombreArchivo, FUENTES, cargarImagen });
 })(window);

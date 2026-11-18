@@ -4,105 +4,164 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Cargar evento</title>
+<title>Eventos</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center;padding:28px 16px}
-main{width:100%;max-width:760px}
-nav{display:flex;gap:14px;margin:0 0 16px;font-size:14px}
+body{margin:0;background:#f4f6fa;color:#172033;font:16px/1.5 system-ui,"Segoe UI",Arial,sans-serif;display:flex;justify-content:center;padding:24px 16px}
+main{width:100%;max-width:1100px}
+nav{display:flex;gap:16px;margin:0 0 16px;font-size:14px}
 nav a{color:#2457d6;text-decoration:none}
 nav a.act{color:#172033;font-weight:700;pointer-events:none}
-.tabla{overflow-x:auto}
-.tabla table{font-size:13px}
-.tabla td.cod{font-weight:600;letter-spacing:.06em;white-space:nowrap}
-.tabla td.enl{color:#667085;word-break:break-all;min-width:220px}
-a.boton{display:inline-block;border:1px solid #2457d6;color:#2457d6;border-radius:8px;padding:9px 12px;font-size:14px;font-weight:650;text-decoration:none;background:#fff}
 h1{font-size:22px;margin:0 0 6px}
 h2{font-size:16px;margin:0 0 10px}
 .sub{margin:0 0 18px;color:#667085;font-size:14px}
-.card{background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #17203308}
-label{display:block;font-size:13px;color:#475467;margin:12px 0 4px}
-label:first-of-type{margin-top:0}
-input[type=text]{width:100%;border:1px solid #d5dbe5;border-radius:8px;padding:11px;font:inherit;background:#fff}
-input[type=file]{width:100%;font:inherit}
-.fila{display:flex;gap:10px;flex-wrap:wrap}
-.fila>div{flex:1;min-width:200px}
-button{border:0;border-radius:8px;padding:12px 16px;background:#2457d6;color:#fff;font:inherit;font-weight:650;cursor:pointer}
+.card{background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 18px #17203308}
+label{display:block;font-size:12px;color:#475467;margin:10px 0 3px}
+input[type=text],input[type=password],input[type=number],select{width:100%;border:1px solid #d5dbe5;border-radius:8px;padding:9px 10px;font:inherit;font-size:14px;background:#fff}
+input:disabled{background:#f2f4f7;color:#667085}
+input[type=color]{width:100%;height:36px;border:1px solid #d5dbe5;border-radius:8px;padding:2px;background:#fff}
+input[type=file]{width:100%;font:inherit;font-size:13px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:#344054}
+.chk input{width:auto}
+button{border:0;border-radius:8px;padding:10px 14px;background:#2457d6;color:#fff;font:inherit;font-size:14px;font-weight:650;cursor:pointer}
 button.sec{background:#fff;color:#2457d6;border:1px solid #2457d6}
+button.mal{background:#fff;color:#b42318;border:1px solid #f0b4ae}
 button:disabled{opacity:.55;cursor:default}
-.ayuda{font-size:12px;color:#667085;margin:4px 0 0}
-.msg{margin:10px 0 0;padding:10px 12px;border-radius:8px;font-size:14px;background:#f2f4f7;color:#475467}
+a.boton{display:inline-block;border:1px solid #2457d6;color:#2457d6;border-radius:8px;padding:9px 14px;font-size:14px;font-weight:650;text-decoration:none;background:#fff}
+.ayuda{font-size:12px;color:#667085;margin:6px 0 0}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.msg{margin-top:10px;padding:9px 11px;border-radius:8px;font-size:14px;background:#f2f4f7;color:#475467}
 .msg.mal{background:#fef3f2;color:#b42318}
 .msg.bien{background:#ecfdf3;color:#067647}
+.fila{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fila>div{flex:1;min-width:200px}
+.ev{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.ev b{display:block;font-size:16px}
+.ev .acciones{margin:0}
+.paso{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;background:#2457d6;color:#fff;font-size:13px;margin-right:8px}
 table{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e5e9f0}
 th{color:#667085;font-weight:600;font-size:12px}
-.codigo{font:600 22px/1 system-ui;letter-spacing:.14em}
-.barra{height:8px;background:#e5e9f0;border-radius:6px;overflow:hidden;margin-top:12px}
+.codigo{font:600 20px/1 system-ui;letter-spacing:.14em}
+.barra{height:8px;background:#e5e9f0;border-radius:6px;overflow:hidden;margin-top:10px}
 .barra i{display:block;height:100%;width:0;background:#2457d6;transition:width .15s}
-canvas{display:block;width:100%;height:auto;border:1px solid #e5e9f0;border-radius:6px;margin-top:12px}
-.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+ul.pasos{list-style:none;margin:10px 0 0;padding:0;font-size:14px}
+ul.pasos li{padding:3px 0;color:#667085}
+ul.pasos li.hecho{color:#067647}
+ul.pasos li.hecho::before{content:"\2713  "}
+ul.pasos li.activo{color:#172033;font-weight:600}
 ol{margin:8px 0 0;padding-left:20px;font-size:14px;color:#344054}
-ol li{margin-bottom:4px}
+ol li{margin-bottom:5px}
 code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
 .oculto{display:none}
+/* editor */
+.dis{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media(max-width:900px){.dis{grid-template-columns:1fr}}
+.marco{position:relative;line-height:0;border:1px solid #d5dbe5;border-radius:6px;overflow:hidden;background:#fff}
+#edCv{display:block;width:100%;height:auto}
+#edCajas{position:absolute;inset:0;touch-action:none;cursor:move;outline:none}
+.caja{position:absolute;border:1px dashed #2457d655;pointer-events:none}
+.caja.sel{border:2px solid #2457d6;background:#2457d610}
+.lista{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}
+.item{flex-shrink:0;text-align:left;background:#fff;color:#172033;border:1px solid #e5e9f0;font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item.sel{border-color:#2457d6;background:#eef3ff;color:#1b3f9e;font-weight:650}
 </style>
 </head>
 <body>
 <main>
-  <nav><a class="act" href="admin.html">Cargar evento</a><a href="editor.html">Diseño</a><a href="panel.html">Estadísticas</a></nav>
-  <h1>Cargar un evento</h1>
-  <p class="sub">Sube la lista de asistentes y se genera todo solo: el código de validación, el enlace y el QR de cada alumno. Cada uno entra con su registro y descarga su certificado.</p>
+  <nav><a href="#" data-v="vInicio" class="act">Eventos</a><a href="panel.html">Estadísticas</a><a href="#" data-v="vConexion">Conexión</a></nav>
 
-  <div class="card">
-    <h2>1. Datos del evento</h2>
-    <label for="nev">Nombre del evento</label>
-    <input id="nev" type="text" placeholder="Ej. Jornada de Marketing Digital 2026" autocomplete="off">
-    <div class="fila">
-      <div><label for="fec">Fecha del evento</label><input id="fec" type="text" placeholder="Ej. 15 de noviembre de 2026" autocomplete="off"></div>
-      <div><label for="hor">Carga horaria (opcional)</label><input id="hor" type="text" placeholder="Ej. 8 horas académicas" autocomplete="off"></div>
+  <!-- EVENTOS GUARDADOS -->
+  <section id="vInicio">
+    <h1>Eventos</h1>
+    <p class="sub">Aquí quedan guardados todos tus eventos. Cada uno tiene su lista de alumnos, su diseño y su enlace.</p>
+    <div id="banner" class="card oculto">
+      <b>Conecta tu GitHub para poder guardar eventos.</b>
+      <p class="ayuda" style="margin-top:4px">Se hace una sola vez y toma dos minutos.</p>
+      <div class="acciones"><button id="irConexion" type="button">Conectar GitHub</button></div>
     </div>
-    <label for="emi">Institución que emite</label>
-    <input id="emi" type="text" placeholder="Ej. Quimera Group" autocomplete="off">
-  </div>
+    <div class="acciones" style="margin:0 0 14px"><button id="nuevo" type="button">Nuevo evento</button></div>
+    <div id="eventos"></div>
+    <div id="estadoInicio"></div>
+  </section>
 
-  <div class="card">
-    <h2>2. Lista de asistentes</h2>
-    <label for="xls">Archivo Excel o CSV con las columnas registro y nombre completo</label>
-    <input id="xls" type="file" accept=".xlsx,.xls,.csv">
-    <p class="ayuda">La primera fila debe tener los encabezados. Si no los tiene, se toma la columna 1 como registro y la 2 como nombre.</p>
-    <div id="prev"></div>
-  </div>
-
-  <div class="card">
-    <h2>3. Generar</h2>
-    <p class="ayuda" style="margin:0 0 10px">Código del evento: <b id="lote" class="codigo">----</b> <button class="sec" id="otro" type="button" style="padding:4px 10px;font-size:13px;margin-left:8px">Otro código</button></p>
-    <button id="gen" disabled>Generar archivo del evento</button>
-    <div class="barra oculto" id="barra"><i id="prog"></i></div>
-    <div id="estado"></div>
-  </div>
-
-  <div class="card oculto" id="res">
-    <h2>4. Listo, publica el archivo</h2>
-    <div class="acciones">
-      <button id="dlJson" type="button">Descargar archivo del evento</button>
-      <button id="dlCsv" type="button" class="sec">Descargar lista con códigos (CSV)</button>
+  <!-- CONEXION -->
+  <section id="vConexion" class="oculto">
+    <h1>Conexión con GitHub</h1>
+    <p class="sub">Con esto, el botón Guardar y publicar sube todo solo al repositorio, sin descargar ni subir archivos a mano.</p>
+    <div class="card">
+      <h2>Crear el token (una sola vez)</h2>
+      <ol>
+        <li>Entra a GitHub, abre tu foto arriba a la derecha, Settings, y al final Developer settings.</li>
+        <li>Personal access tokens, Fine-grained tokens, Generate new token.</li>
+        <li>En Repository access elige Only select repositories y marca el repositorio de los certificados.</li>
+        <li>En Permissions, Repository permissions, pon Contents en Read and write.</li>
+        <li>Genera el token, cópialo y pégalo aquí abajo.</li>
+      </ol>
+      <label for="ghRepo">Repositorio</label><input id="ghRepo" type="text" autocomplete="off" placeholder="usuario/repositorio">
+      <label for="ghToken">Token</label><input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_...">
+      <div class="acciones"><button id="ghGuardar" type="button">Guardar y probar</button><button id="ghOlvidar" class="sec" type="button">Desconectar</button></div>
+      <div id="ghEstado"></div>
+      <p class="ayuda">El token se guarda solo en este navegador y nunca se sube al repositorio. Si abres el panel en otra computadora, hay que conectarlo de nuevo.</p>
     </div>
-    <ol>
-      <li>Sube el archivo descargado a la carpeta principal del repositorio, junto a <code>index.html</code> (GitHub, Add file, Upload files, Commit changes).</li>
-      <li>Espera uno o dos minutos a que GitHub Pages lo publique.</li>
-      <li>Comparte este enlace con los alumnos:</li>
-    </ol>
-    <div class="fila" style="margin-top:8px">
-      <input id="enlace" type="text" readonly>
-      <button id="copiar" type="button" class="sec" style="flex:0 0 auto">Copiar enlace</button>
+  </section>
+
+  <!-- EVENTO -->
+  <section id="vEvento" class="oculto">
+    <h1 id="tituloEvento">Nuevo evento</h1>
+    <p class="sub">Tres pasos y queda publicado.</p>
+
+    <div class="card">
+      <h2><span class="paso">1</span>Evento</h2>
+      <div class="fila">
+        <div><label for="nev">Nombre del evento</label><input id="nev" type="text" autocomplete="off"></div>
+        <div><label for="emi">Institución / Empresa (opcional)</label><input id="emi" type="text" autocomplete="off"></div>
+      </div>
+      <p class="ayuda" id="ayudaNombre">El nombre del evento no se imprime en el certificado. Sirve para identificarlo en la lista y en la página de validación. Código del evento: <b id="loteTxt" class="codigo" style="font-size:14px">----</b></p>
+      <label for="xls" id="lblXls">Lista de asistentes (Excel o CSV con registro y nombre completo)</label>
+      <input id="xls" type="file" accept=".xlsx,.xls,.csv">
+      <p class="ayuda" id="ayudaXls">La primera fila debe tener los encabezados. Si no los tiene, se toma la columna 1 como registro y la 2 como nombre.</p>
+      <div id="prev"></div>
     </div>
-    <p class="ayuda" style="margin-top:14px">Cada alumno ya tiene su código y su enlace de validación. Los primeros de la lista:</p>
-    <div class="tabla" id="tablaRes"></div>
-    <p class="ayuda" style="margin-top:14px">Así se ve el certificado del primer alumno. El nombre, el código, el enlace y el QR se toman solos de cada alumno:</p>
-    <canvas id="vista"></canvas>
-    <div class="acciones"><a class="boton" id="irEditor" href="editor.html?muestra=1">Acomodar el diseño con estos datos</a></div>
-  </div>
+
+    <div class="card">
+      <h2><span class="paso">2</span>Diseño del certificado</h2>
+      <p class="ayuda" style="margin:0 0 8px">Sube tu diseño terminado, con todo el texto ya incluido. Aquí solo ubicas lo que cambia en cada alumno: el nombre, el QR, el código de validación y el texto de verificación. El código, el enlace y el QR se generan solos para cada alumno.</p>
+      <div class="dis">
+        <div>
+          <div class="marco"><canvas id="edCv" width="10" height="10"></canvas><div id="edCajas" tabindex="0" aria-label="Arrastra los elementos para moverlos"></div></div>
+          <p class="ayuda">Arrastra un elemento para moverlo. Con el elemento marcado, las flechas del teclado lo mueven de a poco (con Shift, más rápido).</p>
+        </div>
+        <div>
+          <label for="edFondo">Imagen del certificado (PNG, JPG o SVG)</label>
+          <input id="edFondo" type="file" accept="image/png,image/jpeg,image/svg+xml">
+          <p class="ayuda" id="edFondoInfo"></p>
+          <label for="selDiseno">Partir del diseño de otro evento</label>
+          <select id="selDiseno"><option value="">Diseño base</option></select>
+          <label>Elementos</label>
+          <div class="lista" id="edLista"></div>
+          <div class="acciones" style="margin-top:8px"><button class="sec" id="edAgregar" type="button">Agregar texto</button></div>
+          <div id="edProps" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="paso">3</span>Guardar y publicar</h2>
+      <p class="ayuda" id="resumen" style="margin:0 0 10px"></p>
+      <div class="acciones" style="margin-top:0"><button id="gen" type="button" disabled>Guardar y publicar</button><button id="cancelar" class="sec" type="button">Volver a eventos</button></div>
+      <div class="barra oculto" id="barra"><i id="prog"></i></div>
+      <ul class="pasos" id="pasos"></ul>
+      <div id="estado"></div>
+      <div id="resultado" class="oculto">
+        <p class="ayuda" style="margin:14px 0 4px">Enlace para compartir con los alumnos:</p>
+        <div class="fila"><div><input id="enlace" type="text" readonly></div><div style="flex:0 0 auto"><button id="copiar" type="button" class="sec">Copiar enlace</button></div></div>
+        <div class="acciones"><button id="dlCsv" type="button" class="sec oculto">Descargar lista con códigos (CSV)</button><button id="volver" type="button">Volver a eventos</button></div>
+        <div class="tabla" style="overflow-x:auto" id="tablaRes"></div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <script src="lib/xlsx.full.min.js"></script>
@@ -110,108 +169,237 @@ code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:13px}
 <script src="lib/jspdf.umd.min.js"></script>
 <script src="nucleo.js"></script>
 <script src="dibujo.js"></script>
+<script src="github.js"></script>
+<script src="editor.js"></script>
 <script>
 (function () {
 'use strict';
 const $ = id => document.getElementById(id);
-let alumnos = [], lote = '', plantilla = null, salida = null;
+const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const GH = Cert.GH;
+const base = () => new URL('./', location.href).href;
+let eventos = [], modo = 'nuevo', lote = '', alumnos = [], actual = null, plBase = null, filasCsv = null;
 
 function msg(id, tipo, texto) {
   const c = $(id); c.textContent = '';
-  if (!texto) return;
-  const d = document.createElement('div'); d.className = 'msg ' + (tipo || ''); d.textContent = texto; c.appendChild(d);
+  if (texto) c.appendChild(h('div', 'msg ' + (tipo || ''), texto));
 }
-function base() { return (plantilla && plantilla.verificador) || new URL('./', location.href).href; }
+function textoError(e) {
+  if (e && e.codigo === 'sinconexion') return 'Primero conecta tu GitHub en la pestaña Conexión.';
+  if (e && e.codigo === 'permiso') return 'GitHub no aceptó el token. Revisa que no haya vencido y que tenga permiso Contents en Read and write.';
+  if (e && e.codigo === 'noexiste') return 'No encuentro ese repositorio. Revisa el nombre en la pestaña Conexión.';
+  return 'No se pudo guardar: ' + ((e && e.message) || 'error desconocido') + '.';
+}
+function mostrar(v) {
+  ['vInicio', 'vConexion', 'vEvento'].forEach(i => $(i).classList.toggle('oculto', i !== v));
+  document.querySelectorAll('nav [data-v]').forEach(a => a.classList.toggle('act', a.dataset.v === v || (v === 'vEvento' && a.dataset.v === 'vInicio')));
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('nav [data-v]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); if (a.dataset.v === 'vInicio') inicio(); else mostrar(a.dataset.v); }));
 
+/* ---------- Eventos guardados ---------- */
+async function leerLista() {
+  try {
+    if (GH.conectado()) { const a = await GH.leerJson('eventos.json'); return a ? a.json.eventos : []; }
+  } catch (e) { /* si falla con token, se intenta la lectura pública */ }
+  try { const r = await fetch('eventos.json', { cache: 'no-store' }); if (r.ok) return (await r.json()).eventos || []; } catch (e) { /* sin lista */ }
+  return [];
+}
+const fechaCorta = iso => { try { return new Date(iso).toLocaleDateString('es-BO', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+
+async function inicio() {
+  mostrar('vInicio'); $('banner').classList.toggle('oculto', GH.conectado());
+  eventos = await leerLista(); pintarEventos();
+}
+function pintarEventos() {
+  const c = $('eventos'); c.textContent = '';
+  if (!eventos.length) { c.appendChild(h('p', 'ayuda', 'Todavía no hay eventos guardados.')); return; }
+  [...eventos].sort((a, b) => String(b.creado).localeCompare(String(a.creado))).forEach(ev => {
+    const card = h('div', 'card ev'), info = h('div'); info.appendChild(h('b', '', ev.nombre));
+    info.appendChild(h('span', 'ayuda', ev.alumnos + ' alumnos  ·  creado ' + fechaCorta(ev.creado) + '  ·  código ' + ev.lote));
+    const ac = h('div', 'acciones');
+    const enlace = base() + 'certificado.html?e=' + ev.lote;
+    const bc = h('button', 'sec', 'Copiar enlace'); bc.type = 'button';
+    bc.onclick = async () => { try { await navigator.clipboard.writeText(enlace); bc.textContent = 'Copiado'; } catch (e) { bc.textContent = enlace; } setTimeout(() => { bc.textContent = 'Copiar enlace'; }, 1800); };
+    const ab = h('a', 'boton', 'Abrir'); ab.href = enlace; ab.target = '_blank'; ab.rel = 'noopener';
+    const be = h('button', 'sec', 'Editar'); be.type = 'button'; be.onclick = () => abrirEvento('editar', ev);
+    const bd = h('button', 'mal', 'Eliminar'); bd.type = 'button';
+    bd.onclick = () => {
+      ac.textContent = ''; ac.appendChild(h('span', 'ayuda', 'Se borra el evento. Los certificados ya descargados dejarán de validar. '));
+      const si = h('button', 'mal', 'Sí, eliminar'); si.type = 'button'; si.onclick = () => eliminar(ev);
+      const no = h('button', 'sec', 'Cancelar'); no.type = 'button'; no.onclick = pintarEventos; ac.append(si, no);
+    };
+    ac.append(bc, ab, be, bd); card.append(info, ac); c.appendChild(card);
+  });
+}
+async function eliminar(ev) {
+  msg('estadoInicio', '', 'Eliminando...');
+  try {
+    await GH.borrar(ev.lote + '.json', 'Elimina evento ' + ev.lote);
+    const l = await GH.leerJson('eventos.json');
+    if (l) { l.json.eventos = l.json.eventos.filter(e => e.lote !== ev.lote); await GH.escribir('eventos.json', { texto: JSON.stringify(l.json, null, 2) }, 'Actualiza la lista de eventos', l.sha); }
+    msg('estadoInicio', 'bien', 'Evento eliminado.'); eventos = await leerLista(); pintarEventos();
+  } catch (e) { msg('estadoInicio', 'mal', textoError(e)); pintarEventos(); }
+}
+$('irConexion').onclick = () => mostrar('vConexion');
+$('nuevo').onclick = () => abrirEvento('nuevo');
+
+/* ---------- Conexión ---------- */
+function pintarConexion() { const c = GH.config(); $('ghRepo').value = c.repo || ''; $('ghToken').value = ''; $('ghToken').placeholder = c.token ? 'Token guardado en este navegador' : 'github_pat_...'; }
+$('ghGuardar').onclick = async () => {
+  const c = GH.config(), repo = $('ghRepo').value.trim(), token = $('ghToken').value.trim() || c.token;
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { msg('ghEstado', 'mal', 'Escribe el repositorio (usuario/repositorio) y pega el token.'); return; }
+  GH.guardarConfig(Object.assign({}, c, { repo, token })); msg('ghEstado', '', 'Probando...');
+  try { const nombre = await GH.probar(); msg('ghEstado', 'bien', 'Conectado a ' + nombre + '. Ya puedes guardar eventos.'); pintarConexion(); }
+  catch (e) { msg('ghEstado', 'mal', e.message || textoError(e)); }
+};
+$('ghOlvidar').onclick = () => { GH.olvidar(); pintarConexion(); msg('ghEstado', 'bien', 'Desconectado. El token se borró de este navegador.'); };
+
+/* ---------- Evento (nuevo o editar) ---------- */
 async function nuevoLote() {
-  for (let i = 0; i < 12; i++) {
-    const c = Cert.azar(4); let existe = false;
-    try { existe = (await fetch(c + '.json', { cache: 'no-store' })).ok; } catch (e) { existe = false; }
-    if (!existe) { lote = c; break; }
+  for (let i = 0; i < 15; i++) {
+    const c = Cert.azar(4); let existe = eventos.some(e => e.lote === c);
+    if (!existe) { try { existe = (await fetch(c + '.json', { cache: 'no-store' })).ok; } catch (e) { existe = false; } }
+    if (!existe) return c;
   }
-  $('lote').textContent = lote || '----'; actualizarBoton();
+  throw new Error('No pude generar un código libre');
 }
-function actualizarBoton() {
-  $('gen').disabled = !(alumnos.length && $('nev').value.trim() && lote);
-}
+async function plantillaBase() { if (!plBase) plBase = await (await fetch('plantilla.json', { cache: 'no-store' })).json(); return plBase; }
 
-$('otro').onclick = nuevoLote;
-['nev', 'fec', 'hor', 'emi'].forEach(i => $(i).addEventListener('input', actualizarBoton));
+async function abrirEvento(m, ev) {
+  modo = m; alumnos = []; actual = null; filasCsv = null;
+  $('prev').textContent = ''; $('xls').value = ''; $('resultado').classList.add('oculto'); $('pasos').textContent = ''; msg('estado', '', ''); $('barra').classList.add('oculto');
+  let pl = await plantillaBase();
+  if (m === 'nuevo') {
+    lote = await nuevoLote(); $('nev').value = ''; $('emi').value = ''; $('nev').disabled = false; $('emi').disabled = false;
+    $('tituloEvento').textContent = 'Nuevo evento'; $('lblXls').textContent = 'Lista de asistentes (Excel o CSV con registro y nombre completo)';
+    $('ayudaXls').textContent = 'La primera fila debe tener los encabezados. Si no los tiene, se toma la columna 1 como registro y la 2 como nombre.';
+  } else {
+    lote = ev.lote; $('tituloEvento').textContent = 'Editar evento';
+    try {
+      const a = GH.conectado() ? await GH.leerJson(lote + '.json') : null;
+      actual = a || { json: await (await fetch(lote + '.json', { cache: 'no-store' })).json() };
+    } catch (e) { msg('estadoInicio', 'mal', 'No pude abrir ese evento.'); return; }
+    $('nev').value = actual.json.ev.n; $('emi').value = actual.json.ev.e || ''; $('nev').disabled = true; $('emi').disabled = true;
+    if (actual.json.pl) pl = actual.json.pl;
+    $('lblXls').textContent = 'Agregar alumnos nuevos (opcional)';
+    $('ayudaXls').textContent = 'Solo se agregan los registros que todavía no están. Los alumnos que ya tienen certificado conservan su código.';
+  }
+  $('loteTxt').textContent = lote;
+  const sel = $('selDiseno'); sel.textContent = ''; sel.appendChild(h('option', '', 'Diseño base')).value = '';
+  eventos.filter(e => e.lote !== lote).forEach(e => { const o = h('option', '', e.nombre); o.value = e.lote; sel.appendChild(o); });
+  mostrar('vEvento'); Cert.Editor.iniciar(pl); actualizarGuardar();
+}
+$('selDiseno').onchange = async () => {
+  const v = $('selDiseno').value;
+  try {
+    if (!v) { Cert.Editor.iniciar(await plantillaBase()); return; }
+    const j = await (await fetch(v + '.json', { cache: 'no-store' })).json();
+    Cert.Editor.iniciar(j.pl || await plantillaBase());
+  } catch (e) { msg('estado', 'mal', 'No pude cargar el diseño de ese evento.'); }
+};
+$('cancelar').onclick = inicio; $('volver').onclick = inicio;
+
+function actualizarGuardar() {
+  const ok = $('nev').value.trim() && (modo === 'editar' || alumnos.length);
+  $('gen').disabled = !ok;
+  $('resumen').textContent = modo === 'nuevo'
+    ? (alumnos.length ? 'Se guardará "' + ($('nev').value.trim() || 'sin nombre') + '" con ' + alumnos.length + ' alumnos y el diseño que acomodaste.' : 'Escribe el nombre del evento y sube la lista de asistentes para poder guardar.')
+    : 'Se actualizará el diseño' + (alumnos.length ? ' y se agregarán los alumnos nuevos.' : '. Si no subes una lista, los alumnos quedan igual.');
+}
+$('nev').addEventListener('input', actualizarGuardar);
 
 $('xls').addEventListener('change', async e => {
-  const f = e.target.files[0]; alumnos = []; $('prev').textContent = ''; actualizarBoton();
+  const f = e.target.files[0]; alumnos = []; $('prev').textContent = ''; actualizarGuardar();
   if (!f) return;
   try {
     const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
-    const hoja = wb.Sheets[wb.SheetNames[0]];
-    const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, raw: false, defval: '' });
-    const r = Cert.leerFilas(filas); alumnos = r.alumnos;
-    const p = $('prev');
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' });
+    const r = Cert.leerFilas(filas); alumnos = r.alumnos; const p = $('prev');
     if (!alumnos.length) { msg('prev', 'mal', 'No se encontraron alumnos. Revisa que el archivo tenga registro y nombre completo.'); return; }
-    const t = document.createElement('table');
-    const th = t.createTHead().insertRow(); ['Registro', 'Nombre completo'].forEach(x => { const c = document.createElement('th'); c.textContent = x; th.appendChild(c); });
+    const t = document.createElement('table'), th = t.createTHead().insertRow();
+    ['Registro', 'Nombre completo'].forEach(x => th.appendChild(h('th', '', x)));
     const tb = t.createTBody();
     alumnos.slice(0, 5).forEach(a => { const tr = tb.insertRow(); tr.insertCell().textContent = a.regOriginal; tr.insertCell().textContent = a.nombre; });
-    const info = document.createElement('div'); info.className = 'msg bien';
     let txt = alumnos.length + ' alumnos listos.';
+    if (modo === 'editar' && actual) {
+      let nuevos = 0; for (const a of alumnos) if (!actual.json.r[await Cert.idDe('R|' + lote + '|' + a.reg)]) nuevos++;
+      txt = alumnos.length + ' en la lista: ' + nuevos + ' nuevos y ' + (alumnos.length - nuevos) + ' que ya estaban en el evento.';
+    }
     if (r.avisos.duplicados.length) txt += ' Registros repetidos que se omitieron: ' + [...new Set(r.avisos.duplicados)].slice(0, 8).join(', ') + '.';
     if (r.avisos.vacios) txt += ' Filas sin registro o sin nombre omitidas: ' + r.avisos.vacios + '.';
-    info.textContent = txt;
-    p.append(info, t);
+    p.append(h('div', 'msg bien', txt), t);
+    Cert.Editor.fijarNombre(alumnos[0].nombre);
   } catch (err) { msg('prev', 'mal', 'No pude leer ese archivo. Prueba guardarlo de nuevo como .xlsx o .csv.'); }
-  actualizarBoton();
+  actualizarGuardar();
 });
 
+/* ---------- Guardar y publicar ---------- */
+function pasosUI(lista) {
+  const ul = $('pasos'); ul.textContent = ''; const lis = lista.map(t => ul.appendChild(h('li', '', t)));
+  return n => { lis.forEach((li, i) => { li.className = i < n ? 'hecho' : (i === n ? 'activo' : ''); }); };
+}
 $('gen').addEventListener('click', async () => {
-  const b = $('gen'); b.disabled = true; $('res').classList.add('oculto'); msg('estado', '', '');
-  $('barra').classList.remove('oculto'); $('prog').style.width = '0';
-  const t0 = performance.now();
+  if (!GH.conectado()) { msg('estado', 'mal', 'Primero conecta tu GitHub en la pestaña Conexión.'); return; }
+  const b = $('gen'); b.disabled = true; msg('estado', '', ''); $('resultado').classList.add('oculto');
+  const nuevo = modo === 'nuevo', nombre = $('nev').value.trim(), inst = $('emi').value.trim();
+  const { plantilla, fondoNuevo } = Cert.Editor.obtener();
+  const subeFondo = !!fondoNuevo;
+  const marcar = pasosUI(['Generando códigos y QR de cada alumno', subeFondo ? 'Subiendo el diseño' : null, 'Guardando el evento', 'Actualizando la lista de eventos'].filter(Boolean));
+  let n = 0; marcar(n); $('barra').classList.remove('oculto'); $('prog').style.width = '0';
+  const progreso = (x, t) => { $('prog').style.width = (100 * x / t).toFixed(1) + '%'; };
   try {
-    const o = { lote, evento: $('nev').value.trim(), fecha: $('fec').value.trim(), horas: $('hor').value.trim(), emisor: $('emi').value.trim(),
-      alumnos, onProgreso: (h, n) => { $('prog').style.width = (100 * h / n).toFixed(1) + '%'; } };
-    const { json, filas } = await Cert.construirLote(o);
-    const prueba = await Cert.buscar(json, alumnos[0].reg);
-    if (!prueba || prueba.nombre !== alumnos[0].nombre) throw new Error('verificacion');
-    salida = { json, filas, o };
-    if (!plantilla) plantilla = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
-    filas.forEach(f => { f.enlace = base() + '?c=' + f.codigo.replace(/ /g, ''); });
-    const datos = { nombre: prueba.nombre, evento: o.evento, fecha: o.fecha, emisor: o.emisor, horas: o.horas, codigo: prueba.codigoFormato,
-      enlace: base() + '?c=' + prueba.codigo, enlacecorto: base().replace(/^https?:\/\//, '').replace(/\/$/, '') };
-    const r = await Cert.dibujar(plantilla, datos);
-    const cv = $('vista'); cv.width = r.canvas.width; cv.height = r.canvas.height; cv.getContext('2d').drawImage(r.canvas, 0, 0);
-    $('enlace').value = base() + 'certificado.html?e=' + lote;
+    if (subeFondo) plantilla.fondo = 'fondos/' + lote + '.' + fondoNuevo.ext + '?v=' + Math.floor(Date.now() / 1000);
+    let json, filas = [];
+    if (nuevo) {
+      const r = await Cert.construirLote({ lote, evento: nombre, emisor: inst, alumnos, plantilla, onProgreso: progreso }); json = r.json; filas = r.filas;
+    } else {
+      const fresco = await GH.leerJson(lote + '.json'); if (!fresco) throw new Error('El evento ya no existe en el repositorio');
+      json = fresco.json; json.pl = plantilla;
+      if (alumnos.length) { const r = await Cert.agregarAlumnos(json, alumnos, { onProgreso: progreso }); filas = r.filas; }
+    }
+    marcar(++n);
+    if (subeFondo) { await GH.escribir('fondos/' + lote + '.' + fondoNuevo.ext, { base64: await GH.b64archivo(fondoNuevo.file) }, 'Diseño del evento ' + lote); marcar(++n); }
+    await GH.escribir(lote + '.json', { texto: JSON.stringify(json) }, (nuevo ? 'Agrega' : 'Actualiza') + ' el evento ' + lote); marcar(++n);
+    const l = await GH.leerJson('eventos.json'), doc = l ? l.json : { v: 1, eventos: [] }, ahora = new Date().toISOString();
+    const fila = doc.eventos.find(e => e.lote === lote), total = Object.keys(json.r).length;
+    if (fila) { fila.alumnos = total; fila.actualizado = ahora; }
+    else doc.eventos.push({ lote, nombre, institucion: inst, alumnos: total, creado: ahora, actualizado: ahora });
+    await GH.escribir('eventos.json', { texto: JSON.stringify(doc, null, 2) }, 'Actualiza la lista de eventos', l ? l.sha : undefined); marcar(++n);
+    // resultado
+    const enlaceBase = base();
+    filas.forEach(f => { f.enlace = enlaceBase + '?c=' + f.codigo.replace(/ /g, ''); });
+    filasCsv = filas.length ? { lote, filas } : null;
+    $('enlace').value = enlaceBase + 'certificado.html?e=' + lote;
+    $('dlCsv').classList.toggle('oculto', !filasCsv);
     const tr = $('tablaRes'); tr.textContent = '';
-    const tb = document.createElement('table'), cab = tb.createTHead().insertRow();
-    ['Registro', 'Nombre', 'Código', 'Enlace de validación'].forEach(x => { const c = document.createElement('th'); c.textContent = x; cab.appendChild(c); });
-    const cu = tb.createTBody();
-    filas.slice(0, 5).forEach(f => { const r2 = cu.insertRow(); r2.insertCell().textContent = f.reg; r2.insertCell().textContent = f.nombre;
-      const c3 = r2.insertCell(); c3.className = 'cod'; c3.textContent = f.codigo; const c4 = r2.insertCell(); c4.className = 'enl'; c4.textContent = f.enlace; });
-    tr.appendChild(tb);
-    try { sessionStorage.setItem('muestra', JSON.stringify(datos)); } catch (e) { /* sin almacenamiento, el editor usa datos de ejemplo */ }
-    $('res').classList.remove('oculto');
-    msg('estado', 'bien', 'Archivo generado y comprobado: ' + alumnos.length + ' alumnos en ' + ((performance.now() - t0) / 1000).toFixed(1) + ' segundos.');
-  } catch (e) { msg('estado', 'mal', 'No se pudo generar el archivo. Revisa los datos e intenta de nuevo.'); }
+    if (filas.length) {
+      tr.appendChild(h('p', 'ayuda', 'Cada alumno nuevo ya tiene su código y su enlace de validación. Los primeros:'));
+      const tb = document.createElement('table'), cab = tb.createTHead().insertRow();
+      ['Registro', 'Nombre', 'Código', 'Enlace de validación'].forEach(x => cab.appendChild(h('th', '', x)));
+      const cu = tb.createTBody();
+      filas.slice(0, 5).forEach(f => { const r2 = cu.insertRow(); r2.insertCell().textContent = f.reg; r2.insertCell().textContent = f.nombre;
+        const c3 = r2.insertCell(); c3.className = 'codigo'; c3.style.fontSize = '13px'; c3.textContent = f.codigo; const c4 = r2.insertCell(); c4.style.cssText = 'color:#667085;word-break:break-all'; c4.textContent = f.enlace; });
+      tr.appendChild(tb);
+    }
+    $('resultado').classList.remove('oculto');
+    msg('estado', 'bien', 'Guardado y publicado: ' + total + ' alumnos en total. El enlace empieza a funcionar en uno o dos minutos, cuando GitHub termine de publicar.');
+  } catch (e) { msg('estado', 'mal', textoError(e)); }
   finally { $('barra').classList.add('oculto'); b.disabled = false; }
 });
-
-function bajar(contenido, tipo, nombre) {
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([contenido], { type: tipo })); a.download = nombre;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-}
-$('dlJson').onclick = () => salida && bajar(JSON.stringify(salida.json), 'application/json', salida.json.lote + '.json');
 $('dlCsv').onclick = () => {
-  if (!salida) return;
+  if (!filasCsv) return;
   const q = s => '"' + String(s).replace(/"/g, '""') + '"';
-  const csv = '﻿' + ['Registro,Nombre completo,Codigo de validacion,Enlace de validacion', ...salida.filas.map(f => [q(f.reg), q(f.nombre), q(f.codigo), q(f.enlace)].join(','))].join('\r\n');
-  bajar(csv, 'text/csv;charset=utf-8', 'Lista ' + salida.json.lote + '.csv');
+  const csv = '﻿' + ['Registro,Nombre completo,Codigo de validacion,Enlace de validacion', ...filasCsv.filas.map(f => [q(f.reg), q(f.nombre), q(f.codigo), q(f.enlace)].join(','))].join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'Lista ' + filasCsv.lote + '.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 };
 $('copiar').onclick = async () => {
-  try { await navigator.clipboard.writeText($('enlace').value); $('copiar').textContent = 'Copiado'; }
-  catch (e) { $('enlace').select(); }
+  try { await navigator.clipboard.writeText($('enlace').value); $('copiar').textContent = 'Copiado'; } catch (e) { $('enlace').select(); }
   setTimeout(() => { $('copiar').textContent = 'Copiar enlace'; }, 1800);
 };
 
-nuevoLote();
+pintarConexion(); inicio().then(() => { if (location.hash === '#conexion') mostrar('vConexion'); });
 })();
 </script>
 </body>

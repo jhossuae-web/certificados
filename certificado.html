@@ -66,8 +66,8 @@ function aviso(tipo, texto) {
   if (!texto) return;
   const d = document.createElement('div'); d.className = 'msg ' + tipo; d.textContent = texto; a.appendChild(d);
 }
-function base() {
-  return (plantilla && plantilla.verificador) || new URL('./', location.href).href;
+function base(p) {
+  return (p && p.verificador) || new URL('./', location.href).href;
 }
 async function cargarEvento(codigo) {
   evento = null; $('evento').classList.add('oculto');
@@ -80,7 +80,7 @@ async function cargarEvento(codigo) {
   evento = j; aviso('', '');
   const box = $('evento'); box.textContent = '';
   const b = document.createElement('b'); b.textContent = j.ev.n; box.appendChild(b);
-  const s = document.createElement('span'); s.textContent = [j.ev.f, j.ev.e].filter(Boolean).join('  ·  '); box.appendChild(s);
+  const s = document.createElement('span'); s.textContent = [j.ev.e].filter(Boolean).join('  ·  '); box.appendChild(s);
   box.classList.remove('oculto');
   return true;
 }
@@ -107,14 +107,15 @@ $('f').addEventListener('submit', async ev => {
     Cert.rastro.enviar('busqueda', { reg: regNorm, nombre: al ? al.nombre : '', ok: !!al });
     if (!al) { aviso('mal', 'No encontramos ese registro en este evento. Revisa que esté escrito como figura en la lista de asistentes.'); return; }
     if (!plantilla) plantilla = await (await fetch('plantilla.json', { cache: 'no-store' })).json();
-    const enlace = base() + '?c=' + al.codigo;
-    const datos = { nombre: al.nombre, evento: evento.ev.n, fecha: evento.ev.f, emisor: evento.ev.e, horas: evento.ev.h,
-      codigo: al.codigoFormato, enlace, enlacecorto: base().replace(/^https?:\/\//, '').replace(/\/$/, '') };
-    const res = await Cert.dibujar(plantilla, datos);
+    const pl = evento.pl || plantilla, b0 = base(pl);
+    const enlace = b0 + '?c=' + al.codigo;
+    const datos = { nombre: al.nombre, evento: evento.ev.n, emisor: evento.ev.e,
+      codigo: al.codigoFormato, enlace, enlacecorto: b0.replace(/^https?:\/\//, '').replace(/\/$/, '') };
+    const res = await Cert.dibujar(pl, datos);
     const card = document.createElement('div'); card.className = 'card';
     res.canvas.setAttribute('aria-label', 'Certificado de ' + al.nombre); card.appendChild(res.canvas);
     const ac = document.createElement('div'); ac.className = 'acciones';
-    const bp = document.createElement('button'); bp.textContent = 'Descargar PDF'; bp.onclick = () => { Cert.descargarPDF(plantilla, res, al.nombre, enlace); Cert.rastro.enviar('descarga', { reg: regNorm, nombre: al.nombre, formato: 'pdf' }); };
+    const bp = document.createElement('button'); bp.textContent = 'Descargar PDF'; bp.onclick = () => { Cert.descargarPDF(pl, res, al.nombre, enlace); Cert.rastro.enviar('descarga', { reg: regNorm, nombre: al.nombre, formato: 'pdf' }); };
     const bi = document.createElement('button'); bi.className = 'sec'; bi.textContent = 'Descargar PNG'; bi.onclick = () => { Cert.descargarPNG(res, al.nombre); Cert.rastro.enviar('descarga', { reg: regNorm, nombre: al.nombre, formato: 'png' }); };
     ac.append(bp, bi); card.appendChild(ac);
     const n = document.createElement('p'); n.className = 'nota';

@@ -67,29 +67,40 @@ function leerFilas(filas) {
 
 /* Arma el archivo del evento (LOTE.json).
    d: parte de validación (la que lee index.html). r: parte de consulta por registro. */
-async function construirLote(o) {
-  const it = o.it || 100000, lote = o.lote;
-  const sal = new Uint8Array(16); C.getRandomValues(sal);
-  const json = { v: 1, lote, it, s: b64(sal),
-    ev: { n: o.evento, f: o.fecha || '', e: o.emisor || '', h: o.horas || '' }, d: {}, r: {} };
-  const usados = new Set(), filas = new Array(o.alumnos.length);
+/* Agrega alumnos a un evento (nuevo o ya publicado). Los alumnos cuyo registro ya está
+   en el evento se omiten, así los códigos ya entregados no cambian. */
+async function agregarAlumnos(json, alumnos, o) {
+  o = o || {};
+  const lote = json.lote, it = json.it, sal = unb64(json.s), evento = json.ev.n, emisor = json.ev.e || '';
+  const nuevos = [];
+  for (const a of alumnos) if (!json.r[await idDe('R|' + lote + '|' + a.reg)]) nuevos.push(a);
+  const filas = new Array(nuevos.length), usados = new Set();
   let hechos = 0, i = 0;
   async function uno(idx) {
-    const a = o.alumnos[idx];
-    let p; do { p = azar(10); } while (usados.has(p)); usados.add(p);
-    const kd = await clave(p, sal, it);
-    const kr = await clave('R|' + lote + '|' + a.reg, sal, it);
-    const f = [['Nombre completo', a.nombre], ['Evento', o.evento]];
-    if (o.fecha) f.push(['Fecha', o.fecha]);
-    if (o.horas) f.push(['Carga horaria', o.horas]);
-    json.d[await idDe(lote + '|' + p)] = await sellar(kd, { e: o.emisor || '', f });
+    const a = nuevos[idx];
+    let p, idD;
+    do { p = azar(10); idD = await idDe(lote + '|' + p); } while (usados.has(p) || json.d[idD]);
+    usados.add(p);
+    const kd = await clave(p, sal, it), kr = await clave('R|' + lote + '|' + a.reg, sal, it);
+    const f = [['Nombre completo', a.nombre], ['Evento', evento]];
+    json.d[idD] = await sellar(kd, { e: emisor, f });
     json.r[await idDe('R|' + lote + '|' + a.reg)] = await sellar(kr, { n: a.nombre, p });
     filas[idx] = { reg: a.regOriginal || a.reg, nombre: a.nombre, codigo: formatoCodigo(lote + p) };
-    hechos++; if (o.onProgreso) o.onProgreso(hechos, o.alumnos.length);
+    hechos++; if (o.onProgreso) o.onProgreso(hechos, nuevos.length);
   }
-  async function trabajador() { while (i < o.alumnos.length) await uno(i++); }
-  await Promise.all(Array.from({ length: Math.min(8, o.alumnos.length) }, trabajador));
-  return { json, filas };
+  async function trabajador() { while (i < nuevos.length) await uno(i++); }
+  await Promise.all(Array.from({ length: Math.min(8, nuevos.length) }, trabajador));
+  return { json, filas, omitidos: alumnos.length - nuevos.length };
+}
+
+/* Arma el archivo de un evento nuevo (LOTE.json).
+   d: parte de validación (la que lee index.html). r: parte de consulta por registro. */
+async function construirLote(o) {
+  const sal = new Uint8Array(16); C.getRandomValues(sal);
+  const json = { v: 1, lote: o.lote, it: o.it || 100000, s: b64(sal), ev: { n: o.evento, e: o.emisor || '' }, d: {}, r: {} };
+  if (o.plantilla) json.pl = o.plantilla;
+  const r = await agregarAlumnos(json, o.alumnos, o);
+  return { json: r.json, filas: r.filas };
 }
 
 /* Busca a un alumno por registro dentro del archivo del evento. */
@@ -106,6 +117,6 @@ async function buscar(j, registro) {
   } catch (e) { return null; }
 }
 
-const api = { ALFA, azar, normReg, limpiarNombre, formatoCodigo, leerFilas, construirLote, buscar, idDe, clave, abrir, unb64 };
+const api = { ALFA, azar, normReg, limpiarNombre, formatoCodigo, leerFilas, construirLote, agregarAlumnos, buscar, idDe, clave, abrir, unb64 };
 if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Cert = Object.assign(root.Cert || {}, api);
 })(typeof window !== 'undefined' ? window : globalThis);

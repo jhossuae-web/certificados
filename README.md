@@ -1,25 +1,45 @@
 # Certificados
 
-Plataforma para que los asistentes de un evento descarguen su certificado en PDF o PNG, con QR y código de validación.
+Plataforma para que los asistentes de un evento descarguen su certificado en PDF o PNG, con QR y código de validación. Funciona en GitHub Pages, sin servidor.
 
 ## Páginas
 
-- `admin.html`: la institución carga el Excel (registro y nombre completo) y obtiene el archivo del evento.
+- `admin.html`: lista de eventos, creación y edición de eventos, y conexión con GitHub.
 - `certificado.html?e=CODIGO`: el alumno escribe su registro, ve su certificado y lo descarga.
-- `editor.html`: editor visual del diseño. Sube tu fondo, arrastra nombre, QR y textos, y descarga `plantilla.json` (y el fondo) para subirlos al repositorio.
 - `panel.html`: estadísticas de uso (vistas, búsquedas, descargas, alumnos más buscados).
 - `index.html`: verificación del certificado por código o por QR.
 
-## Cómo se usa
+## Conexión con GitHub (una sola vez)
 
-1. Abrir `admin.html`, llenar los datos del evento y subir el Excel.
-2. Descargar el archivo del evento (`CODIGO.json`) y subirlo a la carpeta principal del repositorio.
-3. Compartir con los alumnos el enlace que muestra el panel.
+1. En GitHub: Settings, Developer settings, Personal access tokens, Fine-grained tokens, Generate new token.
+2. Elegir solo este repositorio y darle el permiso Contents: Read and write.
+3. En `admin.html`, pestaña Conexión, pegar el repositorio (usuario/repositorio) y el token, y tocar Guardar y probar.
 
-## Diseño del certificado
+El token queda guardado solo en el navegador donde lo pegaste. No se sube al repositorio.
 
-El fondo es una sola imagen (`fondo.svg`) y se reutiliza para todos. Solo cambian nombre, código y QR.
-Para usar otro diseño, abrir `editor.html`, subir el fondo (PNG, JPG o SVG, de preferencia A4 horizontal) y acomodar los elementos. También se pueden ajustar a mano posiciones y tamaños en `plantilla.json`.
+## Cómo se crea un evento
+
+En `admin.html` tocar Nuevo evento:
+
+1. Evento: nombre del evento, Institución o Empresa (opcional) y el Excel o CSV con registro y nombre completo.
+2. Diseño: subir la imagen del certificado ya terminada (PNG, JPG o SVG) y arrastrar a su lugar el nombre, el QR, el código de validación y el texto "Verifica en". Se puede partir del diseño de otro evento.
+3. Guardar y publicar: sube a GitHub el diseño, el archivo del evento y actualiza la lista de eventos.
+
+Al terminar aparece el enlace para compartir con los alumnos y un CSV con los códigos y enlaces de validación.
+
+## Qué cambia en cada certificado
+
+Solo cuatro elementos: el nombre, el QR, el código de validación y el texto "Verifica en ...". Todo lo demás va dentro de la imagen del diseño. El nombre del evento no se imprime, solo sirve para identificarlo en la lista y en la página de validación.
+
+## Editar un evento
+
+Desde la lista, Editar permite cambiar el diseño y agregar alumnos nuevos. Los códigos ya entregados siguen siendo válidos. El nombre del evento y la institución quedan fijos porque forman parte de la validación cifrada.
+
+## Archivos que genera
+
+- `CODIGO.json`: datos cifrados del evento y su diseño.
+- `fondos/CODIGO.ext`: imagen del diseño de cada evento.
+- `eventos.json`: lista de eventos para el panel de administración.
 
 ## Estadísticas
 

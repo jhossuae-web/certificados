@@ -1,24 +1,9 @@
 {
   "ancho": 3508,
   "alto": 2480,
-  "fondo": "fondo.svg",
-  "fuentes": [
-    { "familia": "Cormorant", "peso": 700, "estilo": "normal", "archivo": "fonts/cormorant700.woff2" },
-    { "familia": "Cormorant", "peso": 600, "estilo": "italic", "archivo": "fonts/cormorant600i.woff2" },
-    { "familia": "Lato", "peso": 400, "estilo": "normal", "archivo": "fonts/lato400.woff2" },
-    { "familia": "Lato", "peso": 700, "estilo": "normal", "archivo": "fonts/lato700.woff2" }
-  ],
+  "fondo": "fondo.png",
   "elementos": [
-    { "texto": "CERTIFICADO", "x": 1754, "y": 570, "familia": "Cormorant", "peso": 700, "tam": 170, "espaciado": 28, "color": "#1f2f4d" },
-    { "texto": "DE ASISTENCIA", "x": 1754, "y": 690, "familia": "Lato", "peso": 700, "tam": 56, "espaciado": 24, "color": "#a8864a" },
-    { "texto": "Se otorga el presente certificado a", "x": 1754, "y": 910, "familia": "Cormorant", "peso": 600, "estilo": "italic", "tam": 74, "color": "#4a5568" },
     { "texto": "{nombre}", "x": 1754, "y": 1190, "familia": "Cormorant", "peso": 700, "tam": 230, "tamMin": 80, "ancho": 2700, "mayusculas": true, "color": "#1f2f4d" },
-    { "texto": "por su asistencia a", "x": 1754, "y": 1420, "familia": "Cormorant", "peso": 600, "estilo": "italic", "tam": 74, "color": "#4a5568" },
-    { "texto": "{evento}", "x": 1754, "y": 1560, "familia": "Lato", "peso": 700, "tam": 92, "tamMin": 56, "ancho": 2500, "maxLineas": 2, "altoLinea": 120, "color": "#1f2f4d" },
-    { "texto": "{fecha}", "si": "fecha", "x": 1754, "y": 1850, "familia": "Lato", "peso": 400, "tam": 64, "color": "#4a5568" },
-    { "texto": "Carga horaria: {horas}", "si": "horas", "x": 1754, "y": 1935, "familia": "Lato", "peso": 400, "tam": 56, "color": "#4a5568" },
-    { "texto": "EMITIDO POR", "si": "emisor", "x": 420, "y": 1990, "alinear": "left", "familia": "Lato", "peso": 400, "tam": 40, "espaciado": 6, "color": "#a8864a" },
-    { "texto": "{emisor}", "si": "emisor", "x": 420, "y": 2070, "alinear": "left", "familia": "Lato", "peso": 700, "tam": 60, "tamMin": 40, "ancho": 1700, "maxLineas": 2, "altoLinea": 76, "color": "#1f2f4d" },
     { "tipo": "qr", "x": 2830, "y": 1930, "tam": 400, "margen": 3, "color": "#111111", "fondo": "#ffffff" },
     { "texto": "{codigo}", "x": 2830, "y": 2205, "familia": "Lato", "peso": 700, "tam": 46, "espaciado": 4, "color": "#1f2f4d" },
     { "texto": "Verifica en {enlacecorto}", "x": 2830, "y": 2262, "familia": "Lato", "peso": 400, "tam": 34, "tamMin": 22, "ancho": 900, "color": "#4a5568" }
