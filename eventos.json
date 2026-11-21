@@ -2,14 +2,6 @@
   "v": 1,
   "eventos": [
     {
-      "lote": "XZJQ",
-      "nombre": "Brand Me",
-      "institucion": "Universidad NUR",
-      "alumnos": 1,
-      "creado": "2026-11-18T15:23:06.886Z",
-      "actualizado": "2026-11-18T15:26:54.180Z"
-    },
-    {
       "lote": "RBML",
       "nombre": "Revolución de las Billeteras móviles en Latam",
       "institucion": "Universidad NUR",
