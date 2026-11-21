@@ -93,6 +93,30 @@ async function agregarAlumnos(json, alumnos, o) {
   return { json, filas, omitidos: alumnos.length - nuevos.length };
 }
 
+/* Cambia el nombre del evento y/o la institución en un evento ya publicado.
+   El nombre va cifrado dentro de la validación de cada certificado, así que hace falta la lista con los registros:
+   con cada registro se abre su dato y se vuelve a sellar. Los códigos y los QR ya entregados no cambian.
+   Si la lista no cubre a todos los alumnos del evento no se toca nada (faltan > 0). */
+async function renombrar(json, alumnos, o) {
+  const lote = json.lote, it = json.it, sal = unb64(json.s), evento = String(o.evento || '').trim(), emisor = String(o.emisor || '').trim();
+  const total = Object.keys(json.r).length, presentes = [];
+  for (const a of alumnos) { const id = await idDe('R|' + lote + '|' + a.reg); if (json.r[id]) presentes.push(a); }
+  const faltan = total - presentes.length;
+  if (faltan > 0) return { json, faltan, hechos: 0 };
+  let hechos = 0, i = 0; const nd = {};
+  async function uno(a) {
+    const kr = await clave('R|' + lote + '|' + a.reg, sal, it);
+    const reg = await abrir(kr, json.r[await idDe('R|' + lote + '|' + a.reg)]);
+    const kd = await clave(reg.p, sal, it);
+    nd[await idDe(lote + '|' + reg.p)] = await sellar(kd, { e: emisor, f: [['Nombre completo', reg.n], ['Evento', evento]] });
+    hechos++; if (o.onProgreso) o.onProgreso(hechos, presentes.length);
+  }
+  async function trabajador() { while (i < presentes.length) await uno(presentes[i++]); }
+  await Promise.all(Array.from({ length: Math.min(8, presentes.length) }, trabajador));
+  Object.assign(json.d, nd); json.ev = { n: evento, e: emisor };
+  return { json, faltan: 0, hechos };
+}
+
 /* Arma el archivo de un evento nuevo (LOTE.json).
    d: parte de validación (la que lee index.html). r: parte de consulta por registro. */
 async function construirLote(o) {
@@ -117,6 +141,6 @@ async function buscar(j, registro) {
   } catch (e) { return null; }
 }
 
-const api = { ALFA, azar, normReg, limpiarNombre, formatoCodigo, leerFilas, construirLote, agregarAlumnos, buscar, idDe, clave, abrir, unb64 };
+const api = { ALFA, azar, normReg, limpiarNombre, formatoCodigo, leerFilas, construirLote, agregarAlumnos, renombrar, buscar, idDe, clave, abrir, unb64 };
 if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Cert = Object.assign(root.Cert || {}, api);
 })(typeof window !== 'undefined' ? window : globalThis);

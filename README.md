@@ -33,7 +33,13 @@ Solo cuatro elementos: el nombre, el QR, el código de validación y el texto "V
 
 ## Editar un evento
 
-Desde la lista, Editar permite cambiar el diseño y agregar alumnos nuevos. Los códigos ya entregados siguen siendo válidos. El código, el nombre del evento y la institución quedan fijos porque forman parte de la validación cifrada.
+Desde la lista, Editar abre el evento con el botón **Actualizar y guardar**. Antes de guardar muestra un resumen de lo que cambia. Se puede:
+
+- Cambiar el diseño: mover elementos, editar textos, cambiar la imagen, agregar textos y eliminarlos (el nombre, el QR, el código y el "Verifica en" no se pueden eliminar).
+- Agregar alumnos nuevos subiendo la lista. Los códigos ya entregados siguen funcionando.
+- Cambiar el nombre del evento o la institución. Como van cifrados dentro de la validación de cada certificado, hay que subir la lista completa de asistentes para actualizarlos. Si a la lista le falta algún alumno, no se cambia nada y avisa cuántos faltan. Los códigos y QR ya entregados siguen siendo válidos.
+
+El código del evento (y por lo tanto su enlace) queda fijo, porque es el inicio de todos los códigos de validación.
 
 ## Archivos que genera
 

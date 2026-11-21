@@ -40,6 +40,13 @@ function pintarCajas() {
   });
 }
 
+/* El nombre, el QR, el código y el texto de verificación no se pueden quitar: sin ellos el certificado no funciona. */
+function esFijo(el) { return el.tipo === 'qr' || /\{(nombre|codigo|enlacecorto|enlace)\}/.test(el.texto || ''); }
+function quitar(i) {
+  const el = pl.elementos[i]; if (!el || esFijo(el)) return;
+  pl.elementos.splice(i, 1); sel = Math.min(i, pl.elementos.length - 1);
+  refrescar(); pedir(); cambio();
+}
 function etiqueta(el) { return el.tipo === 'qr' ? 'Código QR' : el.tipo === 'linea' ? 'Línea' : el.texto; }
 function pintarLista() {
   const l = $('edLista'); l.textContent = '';
@@ -76,6 +83,7 @@ function montarArrastre() {
   });
   ['pointerup', 'pointercancel'].forEach(t => c.addEventListener(t, () => { drag = null; }));
   c.addEventListener('keydown', e => {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && sel >= 0) { e.preventDefault(); quitar(sel); return; }
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (!d || sel < 0) return;
     e.preventDefault(); const el = pl.elementos[sel], paso = e.shiftKey ? 20 : 4;
@@ -123,6 +131,8 @@ function pintarProps() {
     const ch = h('label', 'chk'); const ci = document.createElement('input'); ci.type = 'checkbox'; ci.checked = !!el.mayusculas;
     ci.onchange = () => { el.mayusculas = ci.checked; hacer(); }; ch.append(ci, document.createTextNode('Todo en mayúsculas')); c.appendChild(ch);
   }
+  if (esFijo(el)) c.appendChild(h('p', 'ayuda', 'Este elemento es parte de cada certificado, así que no se puede eliminar. Solo lo mueves o le cambias el estilo.'));
+  else { const bx = h('button', 'mal', 'Eliminar este elemento'); bx.type = 'button'; bx.style.marginTop = '12px'; bx.onclick = () => quitar(sel); c.appendChild(bx); }
 }
 
 /* Fondo propio */
