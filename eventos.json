@@ -8,6 +8,14 @@
       "alumnos": 1,
       "creado": "2026-11-18T15:52:48.034Z",
       "actualizado": "2026-11-18T15:52:48.034Z"
+    },
+    {
+      "lote": "BRDM",
+      "nombre": "BRand Me",
+      "institucion": "Universidad NUR",
+      "alumnos": 325,
+      "creado": "2026-11-21T00:35:46.790Z",
+      "actualizado": "2026-11-21T00:35:46.790Z"
     }
   ]
 }
